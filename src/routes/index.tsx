@@ -47,74 +47,67 @@ function macroCalories(macros: MacroNutrientsProps): number {
   return macros.carbo * 4 + macros.protein * 4 + macros.fat * 9;
 }
 
-const [show, setShow] = createSignal(false);
-
 export function routeData() {
   const [foods] = createResource(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
     let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
-    console.log(`res.data: `, res.data);
 
     let data = res.data;
     data = data.map((item: FoodProps) => {
       item.macros = {
-        protein: 100,
-        carbo: 100,
-        fat: 100,
+        protein: 123,
+        carbo: 123,
+        fat: 12,
       };
       return item;
     });
 
-    console.log(`data: `, data);
+    console.log(`Food count: `, data.length);
     return data;
   });
 
-  return { foods };
+  const [meals] = createResource(async () => {
+    let res = await API.get<{ meals: MealProps[] }>('http://localhost:4000/day/20230521');
+
+    let data = res.data;
+    let meals = data.meals;
+    meals = meals.map((meal: MealProps) => {
+      meal.items = [
+        {
+          food: () => foods()?.[0],
+          quantity: 100,
+        } as MealItemProps,
+        {
+          food: () => foods()?.[1],
+          quantity: 200,
+        } as MealItemProps,
+      ]
+      return meal;
+    });
+
+    console.log(`Meal count: `, meals.length);
+    return meals as MealProps[];
+  });
+
+  const testeFoods = foods();
+  const testeMeals = meals();
+
+  const [show, setShow] = createSignal(false);
+
+  return { foods, meals, show, setShow };
 }
 
-
-
-
 const Home: Component = () => {
-  const { foods } = useRouteData<typeof routeData>();
+  const { foods, meals, show, setShow } = useRouteData<typeof routeData>();
 
-  const mealItems: StoreSig<MealItemProps[]> = createStore([
-    {
-      food: createResource(() => foods()?.[0])[0],
-      quantity: 100,
-    } as MealItemProps,
-    {
-      food: createResource(() => foods()?.[1])[0],
-      quantity: 200,
-    } as MealItemProps,
-  ] as MealItemProps[]);
-
-  const meals = createSignal(
-    [
-      {
-        name: "Café da manhã",
-        items: createStore([...mealItems[0]])
-      } as MealProps,
-      {
-        name: "Almoço",
-        items: createStore([...mealItems[0]])
-      } as MealProps,
-      {
-        name: "Janta",
-        items: createStore([...mealItems[0]])
-      } as MealProps,
-    ]);
-
-  const macros = () => sumMacros(
-    meals[0]().map((meal) =>
+  const macros = () => {
+    return sumMacros(meals()?.map?.((meal) =>
       sumMacros(
-        meal.items[0].map((item) =>
+        meal.items.map((item) =>
           multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
         )
       )
-    )
-  );
-
+    ) ?? [])
+  }
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
 
@@ -134,9 +127,13 @@ const Home: Component = () => {
             <Modal.Title>Adicionar item na refeição</Modal.Title>
           </Modal.Header>
           <Modal.Body>
-            <MealItemAdd
-              {...meals[0]()[0].items[0][0]}
-            />
+            Nome do alimento
+            <Suspense fallback={<p>Loading...</p>}>
+              {/* <MealItemAdd
+                {...meals()?.[0].items[0] ?? {} as MealItemProps} //TODO: fix this
+              // {...meals[0]()[0].items[0][0]}
+              /> */}
+            </Suspense>
           </Modal.Body>
         </Modal>
         <div class="col-12 col-md-9 mx-auto">
@@ -149,15 +146,15 @@ const Home: Component = () => {
             <div class="col mx-auto">
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Carboidrato</span>
-                <ProgressBar variant='success' label="100g" animated={true} min={0} max={200} now={macros().carbo} />
+                <ProgressBar variant='success' label={`${macros().carbo}g`} animated={true} min={0} max={200} now={macros().carbo} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Proteína</span>
-                <ProgressBar variant='danger' label="100g" animated={true} min={0} max={200} now={macros().protein} />
+                <ProgressBar variant='danger' label={`${macros().protein}g`} animated={true} min={0} max={200} now={macros().protein} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Gordura</span>
-                <ProgressBar variant='warning' label="100g" animated={true} min={0} max={200} now={macros().fat} />
+                <ProgressBar variant='warning' label={`${macros().fat}g`} animated={true} min={0} max={200} now={macros().fat} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="fs-2"><MacroNutrients {...macros()} /></span>
@@ -168,7 +165,7 @@ const Home: Component = () => {
           </div>
 
           <For
-            each={meals[0]()}
+            each={meals() ?? []}
             fallback={
               <>
                 <h1 class="text-center text-danger my-5">Nenhuma refeição cadastrada!</h1>
@@ -186,16 +183,18 @@ const Home: Component = () => {
 const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsProps) => {
   return (
     <>
-      <span class="text-success"> C: {props.carbo} </span>
-      <span class="text-danger"> P: {props.protein} </span>
-      <span class="text-warning"> G: {props.fat} </span>
+      <span class="text-success"> C: {Math.round(props.carbo)} </span>
+      <span class="text-danger"> P: {Math.round(props.protein)} </span>
+      <span class="text-warning"> G: {Math.round(props.fat)} </span>
     </>
   );
 }
 
 const Meal: Component<MealProps> = (props: MealProps) => {
+  const { show, setShow } = useRouteData<typeof routeData>();
+
   const macros = () => sumMacros(
-    props.items[0].map((item) =>
+    props.items.map((item) =>
       multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
     )
   );
@@ -209,7 +208,7 @@ const Meal: Component<MealProps> = (props: MealProps) => {
         <div class="row g-0 mb-3">
           <span class=""><MacroNutrients {...macros()} /></span>
         </div>
-        <For each={props.items[0]}>
+        <For each={props.items}>
           {
             (item) =>
               <MealItem {...item} />
@@ -218,8 +217,6 @@ const Meal: Component<MealProps> = (props: MealProps) => {
 
         <button class="btn btn-primary w-100 bg p-1" onClick={() => {
           setShow(true);
-          // props.items[1]([...props.items[0], props.items[0][0]]);
-          // window.scrollBy(0, 67)
         }}>
           Adicionar
         </button>
@@ -235,10 +232,12 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
   return (
     <>
       <div class="row mb-2 g-0">
-        {/* <div class="col g-0">
+        <div class="col g-0">
           <div class="row g-0 bg-dark-grey">
             <div class="col ps-2">
-              <span class="fs-4">{props.food().name}</span>
+              <Suspense fallback={<p>Loading...</p>}>
+                <span class="fs-4">{props.food()?.name}</span>
+              </Suspense>
             </div>
           </div>
           <div class="row bg-dark-grey g-0">
@@ -253,7 +252,7 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
           <span class="align-self-end p-1 pe-3">
             {props.quantity}g
           </span>
-        </div> */}
+        </div>
         <div class="col col-2 col-sm-1 bg-dark-grey g-0 d-flex justify-content-center border-start border-dark">
           <div class="pt-2">
             <A href="/foods" >
@@ -270,7 +269,7 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
 }
 //TODO: remove export
 export const MealItemAdd: Component<MealItemProps> = () => {
-  const { foods } = useRouteData<typeof routeData>();
+  const { foods, meals, show, setShow } = useRouteData<typeof routeData>();
 
   const [selectedFood, setSelectedFood] = createSignal<FoodProps | undefined>(undefined);
   const [quantity, setQuantity] = createSignal(0);
@@ -345,30 +344,34 @@ export const MealItemAdd: Component<MealItemProps> = () => {
         </div>
         <div class="col">
           <button disabled={!canAdd()} class={`btn ${canAdd() ? 'btn-primary' : 'btn-dark text-muted'} w-100 bg p-1`} onClick={() => {
-            // setShow(false);
-            // // props.items[1]([...props.items[0], props.items[0][0]]);
-            // const firstMeal = meals[0]()[0];
+            setShow(false);
+            // props.items[1]([...props.items[0], props.items[0][0]]);
+            const firstMeal = meals()?.[0];
 
-            // const firstMealItemsSetter = firstMeal.items[1];
-            // const firstMealItems = firstMeal.items[0];
+            if (firstMeal === undefined) {
+              console.error('firstMeal is undefined');
+              throw new Error('firstMeal is undefined');
+            }
 
-            // const selectedFoodVal = selectedFood();
-            // if (selectedFoodVal === undefined) {
-            //   console.error('selectedFood is undefined');
-            //   throw new Error('selectedFood is undefined');
-            // }
+            const firstMealItemsSetter = firstMeal.items[1];
+            const firstMealItems = firstMeal.items[0];
 
-            // const newMealItem: MealItemProps = {
-            //   food: createResource(() => selectedFoodVal)[0],
-            //   quantity: quantity(),
-            // };
+            const selectedFoodVal = selectedFood();
+            if (selectedFoodVal === undefined) {
+              console.error('selectedFood is undefined');
+              throw new Error('selectedFood is undefined');
+            }
+
+            const newMealItem: MealItemProps = {
+              food: () => selectedFoodVal,
+              quantity: quantity(),
+            };
 
             // firstMealItemsSetter([...firstMealItems, newMealItem]);
-            // //dump to json
-            // const mealsJson = JSON.stringify(meals[0]());
-            // localStorage.setItem('meals', mealsJson);
+            console.log(JSON.stringify(firstMealItems, null, 2));
+            //dump to json
 
-            // window.scrollBy(0, 67)
+            window.scrollBy(0, 67)
           }}>
             Adicionar
           </button>

@@ -16,10 +16,10 @@ export type MacroNutrientsProps = {
 
 export type MealProps = {
   name: string,
-  items: StoreSig<MealItemProps[]>,
+  items: MealItemProps[],
 }
 
 export type MealItemProps = {
-  food: Resource<FoodProps>,
+  food: Accessor<FoodProps>,
   quantity: number,
 }
