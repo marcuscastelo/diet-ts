@@ -1,19 +1,34 @@
-import { createSignal } from "solid-js";
+import { createResource, createSignal, lazy } from "solid-js";
 import { FoodProps } from "../types";
 import TBCA from '../tbca.json';
 import { createStore } from "solid-js/store";
 import axios from "axios";
+import { createServerData$ } from "solid-start/server";
 
-const all_food = axios.get('http://localhost:4000/food').then(res => res.data).then(data => {
-    console.log(all_food);
-    return data;
-});
+export const API = axios.create(
+    {
+        baseURL: "",
+        withCredentials: false,
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET,PUT,POST,DELETE,PATCH,OPTIONS',
+        }
+    })
 
-// export const food = createStore(TBCA.map(entry => ({
-//     name: entry.Nome,
-//     macros: {
-//         carbo: 10,
-//         protein: 20,
-//         fat: 30,
-//     }
-// } as FoodProps)));
+
+// export function test() {
+//     const [foods] = createResource(async () => {
+//         await new Promise((resolve) => setTimeout(resolve, 1000));
+//         return [
+//             {
+//                 name: "Arroz",
+//                 macros: {
+//                     carbo: 77,
+//                     protein: 7,
+//                     fat: 1,
+//                 },
+//             },
+//         ]
+//     });
+//     return { foods };
+// }

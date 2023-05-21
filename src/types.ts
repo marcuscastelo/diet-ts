@@ -1,4 +1,4 @@
-import { Accessor, Signal } from "solid-js";
+import { Accessor, Resource, Signal } from "solid-js";
 import { SetStoreFunction } from "solid-js/store";
 
 export type StoreSig<T> = [get: T, set: SetStoreFunction<T>];
@@ -20,6 +20,6 @@ export type MealProps = {
 }
 
 export type MealItemProps = {
-  food: Accessor<FoodProps>,
+  food: Resource<FoodProps>,
   quantity: number,
 }

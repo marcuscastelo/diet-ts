@@ -1,15 +1,16 @@
-import { For, type Component, createSignal, Signal, Suspense, Setter, lazy } from 'solid-js';
+import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource } from 'solid-js';
 
 import Fa from 'solid-fa'
 import { faEdit } from '@fortawesome/free-solid-svg-icons'
 import { createStore } from 'solid-js/store';
 import { FoodProps, MacroNutrientsProps, MealItemProps, MealProps, StoreSig } from '../types';
-import { food } from './db';
 import { Modal, ProgressBar } from 'solid-bootstrap';
 import CircleProgressBar from '../components/CircleProgressBar';
 import { Select, createOptions } from '@thisbeyond/solid-select';
 import '@thisbeyond/solid-select/style.css'
-import { A, ErrorBoundary } from 'solid-start';
+import { A, ErrorBoundary, useRouteData } from 'solid-start';
+import { createServerData$ } from 'solid-start/server';
+import { API } from './db';
 
 function emptyMacros(): MacroNutrientsProps {
   return {
@@ -48,39 +49,67 @@ function macroCalories(macros: MacroNutrientsProps): number {
 
 const [show, setShow] = createSignal(false);
 
-const mealItems: StoreSig<MealItemProps[]> = createStore([
-  {
-    food: () => food[0][0],
-    quantity: 100,
-  } as MealItemProps,
-  {
-    food: () => food[0][1000],
-    quantity: 200,
-  } as MealItemProps,
-] as MealItemProps[]);
+export function routeData() {
+  const [foods] = createResource(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
+    console.log(`res.data: `, res.data);
 
-const meals = createSignal(
-  [
-    {
-      name: "Café da manhã",
-      items: createStore([...mealItems[0]])
-    } as MealProps,
-    {
-      name: "Almoço",
-      items: createStore([...mealItems[0]])
-    } as MealProps,
-    {
-      name: "Janta",
-      items: createStore([...mealItems[0]])
-    } as MealProps,
-  ]);
+    let data = res.data;
+    data = data.map((item: FoodProps) => {
+      item.macros = {
+        protein: 100,
+        carbo: 100,
+        fat: 100,
+      };
+      return item;
+    });
+
+    console.log(`data: `, data);
+    return data;
+  });
+
+  return { foods };
+}
+
+
+
 
 const Home: Component = () => {
+  const { foods } = useRouteData<typeof routeData>();
+
+  const mealItems: StoreSig<MealItemProps[]> = createStore([
+    {
+      food: createResource(() => foods()?.[0])[0],
+      quantity: 100,
+    } as MealItemProps,
+    {
+      food: createResource(() => foods()?.[1])[0],
+      quantity: 200,
+    } as MealItemProps,
+  ] as MealItemProps[]);
+
+  const meals = createSignal(
+    [
+      {
+        name: "Café da manhã",
+        items: createStore([...mealItems[0]])
+      } as MealProps,
+      {
+        name: "Almoço",
+        items: createStore([...mealItems[0]])
+      } as MealProps,
+      {
+        name: "Janta",
+        items: createStore([...mealItems[0]])
+      } as MealProps,
+    ]);
+
   const macros = () => sumMacros(
     meals[0]().map((meal) =>
       sumMacros(
         meal.items[0].map((item) =>
-          multiplyMacros(item.food().macros, item.quantity)
+          multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
         )
       )
     )
@@ -167,7 +196,7 @@ const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsPro
 const Meal: Component<MealProps> = (props: MealProps) => {
   const macros = () => sumMacros(
     props.items[0].map((item) =>
-      multiplyMacros(item.food().macros, item.quantity)
+      multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
     )
   );
 
@@ -200,7 +229,7 @@ const Meal: Component<MealProps> = (props: MealProps) => {
 }
 
 const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
-  const foodMacros = () => props.food().macros;
+  const foodMacros = () => props.food()?.macros ?? emptyMacros();
   const macros = () => multiplyMacros(foodMacros(), props.quantity);
 
   return (
@@ -227,7 +256,7 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
         </div> */}
         <div class="col col-2 col-sm-1 bg-dark-grey g-0 d-flex justify-content-center border-start border-dark">
           <div class="pt-2">
-            <A href="/edit" >
+            <A href="/foods" >
               <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
                 <i class="fas fa-edit fs-2 mt-2">asdf</i>
                 <i class="bi bi-airplane">dd</i>
@@ -241,6 +270,7 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
 }
 //TODO: remove export
 export const MealItemAdd: Component<MealItemProps> = () => {
+  const { foods } = useRouteData<typeof routeData>();
 
   const [selectedFood, setSelectedFood] = createSignal<FoodProps | undefined>(undefined);
   const [quantity, setQuantity] = createSignal(0);
@@ -250,7 +280,7 @@ export const MealItemAdd: Component<MealItemProps> = () => {
 
   const canAdd = () => selectedFood() !== undefined && quantity() > 0;
 
-  const options = createOptions(food[0], { key: 'name' });
+  const options = createOptions(foods() ?? ['Loading...'], { key: 'name' });
 
   const handleFilter = (selectedFood: FoodProps) => {
     //TODO: optimize
@@ -315,30 +345,30 @@ export const MealItemAdd: Component<MealItemProps> = () => {
         </div>
         <div class="col">
           <button disabled={!canAdd()} class={`btn ${canAdd() ? 'btn-primary' : 'btn-dark text-muted'} w-100 bg p-1`} onClick={() => {
-            setShow(false);
-            // props.items[1]([...props.items[0], props.items[0][0]]);
-            const firstMeal = meals[0]()[0];
+            // setShow(false);
+            // // props.items[1]([...props.items[0], props.items[0][0]]);
+            // const firstMeal = meals[0]()[0];
 
-            const firstMealItemsSetter = firstMeal.items[1];
-            const firstMealItems = firstMeal.items[0];
+            // const firstMealItemsSetter = firstMeal.items[1];
+            // const firstMealItems = firstMeal.items[0];
 
-            const selectedFoodVal = selectedFood();
-            if (selectedFoodVal === undefined) {
-              console.error('selectedFood is undefined');
-              throw new Error('selectedFood is undefined');
-            }
+            // const selectedFoodVal = selectedFood();
+            // if (selectedFoodVal === undefined) {
+            //   console.error('selectedFood is undefined');
+            //   throw new Error('selectedFood is undefined');
+            // }
 
-            const newMealItem: MealItemProps = {
-              food: () => selectedFoodVal,
-              quantity: quantity(),
-            };
+            // const newMealItem: MealItemProps = {
+            //   food: createResource(() => selectedFoodVal)[0],
+            //   quantity: quantity(),
+            // };
 
-            firstMealItemsSetter([...firstMealItems, newMealItem]);
-            //dump to json
-            const mealsJson = JSON.stringify(meals[0]());
-            localStorage.setItem('meals', mealsJson);
+            // firstMealItemsSetter([...firstMealItems, newMealItem]);
+            // //dump to json
+            // const mealsJson = JSON.stringify(meals[0]());
+            // localStorage.setItem('meals', mealsJson);
 
-            window.scrollBy(0, 67)
+            // window.scrollBy(0, 67)
           }}>
             Adicionar
           </button>
