@@ -1,0 +1,67 @@
+Arguments: 
+  /usr/bin/node /usr/bin/yarn add @icon/font-awesome-solid
+
+PATH: 
+  /home/marucs/.pyenv/shims:/home/marucs/.pyenv/bin:/home/marucs/.nimble/bin:/home/marucs/.local/share/zinit/polaris/bin:/home/marucs/.pyenv/bin:/home/marucs/.nimble/bin:/home/marucs/.pyenv/bin:/home/marucs/.cargo/bin:/usr/local/bin:/usr/bin:/bin:/usr/local/sbin:/opt/android-sdk/platform-tools:/usr/lib/jvm/default/bin:/usr/bin/site_perl:/usr/bin/vendor_perl:/usr/bin/core_perl:/opt/android-sdk/platform-tools:.local/bin:/opt/cmake-3.21.1/bin:/opt/android-sdk/platform-tools:.local/bin:/opt/cmake-3.21.1/bin
+
+Yarn version: 
+  1.22.19
+
+Node version: 
+  16.20.0
+
+Platform: 
+  linux x64
+
+Trace: 
+  Error: https://registry.yarnpkg.com/@icon%2ffont-awesome-solid: Not found
+      at Request.params.callback [as _callback] (/usr/lib/node_modules/yarn/lib/cli.js:66145:18)
+      at Request.self.callback (/usr/lib/node_modules/yarn/lib/cli.js:140890:22)
+      at Request.emit (node:events:513:28)
+      at Request.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141862:10)
+      at Request.emit (node:events:513:28)
+      at IncomingMessage.<anonymous> (/usr/lib/node_modules/yarn/lib/cli.js:141784:12)
+      at Object.onceWrapper (node:events:627:28)
+      at IncomingMessage.emit (node:events:525:35)
+      at endReadableNT (node:internal/streams/readable:1358:12)
+      at processTicksAndRejections (node:internal/process/task_queues:83:21)
+
+npm manifest: 
+  {
+    "name": "diet-ts",
+    "scripts": {
+      "dev": "solid-start dev",
+      "build": "solid-start build",
+      "start": "solid-start start"
+    },
+    "type": "module",
+    "devDependencies": {
+      "@types/node": "^18.11.18",
+      "esbuild": "^0.14.54",
+      "postcss": "^8.4.21",
+      "solid-start-node": "^0.2.19",
+      "typescript": "^4.9.4",
+      "vite": "^4.1.4"
+    },
+    "dependencies": {
+      "@fortawesome/free-solid-svg-icons": "^6.4.0",
+      "@solidjs/meta": "^0.28.2",
+      "@solidjs/router": "^0.8.2",
+      "@thisbeyond/solid-select": "^0.14.0",
+      "sass": "^1.62.1",
+      "solid-bootstrap": "^1.0.13",
+      "solid-fa": "^0.2.0",
+      "solid-js": "^1.7.2",
+      "solid-start": "^0.2.26",
+      "undici": "^5.15.1"
+    },
+    "engines": {
+      "node": ">=16.8"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

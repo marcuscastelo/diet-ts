@@ -1,0 +1,15 @@
+$colors: (
+    black: #211A20,
+    dark-grey: #3C3C3C,
+    primary-blue: #437F97,
+    primary-green: #849324,
+    yellow: #FFB30F,
+    red: #FD151B,
+);
+
+@each $name,
+$color in $colors {
+    .bg-#{"" + $name} {
+        background-color: $color;
+    }
+}
