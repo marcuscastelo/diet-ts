@@ -1,4 +1,4 @@
-import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource } from 'solid-js';
+import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource, createContext, useContext, Accessor } from 'solid-js';
 
 import { FoodProps, MacroNutrientsProps, MealItemProps, MealProps, StoreSig } from '../types';
 import { Modal, ProgressBar } from 'solid-bootstrap';
@@ -14,7 +14,7 @@ import server$, { createServerData$ } from 'solid-start/server';
 
 function emptyMacros(): MacroNutrientsProps {
   return {
-    carbo: 0,
+    carbs: 0,
     protein: 0,
     fat: 0,
   }
@@ -23,7 +23,7 @@ function emptyMacros(): MacroNutrientsProps {
 function multiplyMacros(macros: MacroNutrientsProps, quantity: number): MacroNutrientsProps {
   const multiplier = quantity / 100;
   return {
-    carbo: macros.carbo * multiplier,
+    carbs: macros.carbs * multiplier,
     protein: macros.protein * multiplier,
     fat: macros.fat * multiplier,
   }
@@ -32,22 +32,22 @@ function multiplyMacros(macros: MacroNutrientsProps, quantity: number): MacroNut
 function sumMacros([...macros]: MacroNutrientsProps[]): MacroNutrientsProps {
   return macros.reduce((acc, curr) => {
     return {
-      carbo: acc.carbo + curr.carbo,
+      carbs: acc.carbs + curr.carbs,
       protein: acc.protein + curr.protein,
       fat: acc.fat + curr.fat,
     }
   }, {
-    carbo: 0,
+    carbs: 0,
     protein: 0,
     fat: 0,
   })
 }
 
 function macroCalories(macros: MacroNutrientsProps): number {
-  return macros.carbo * 4 + macros.protein * 4 + macros.fat * 9;
+  return macros.carbs * 4 + macros.protein * 4 + macros.fat * 9;
 }
 
-export function routeData({params}: RouteDataArgs) {
+export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
     let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
 
@@ -55,7 +55,7 @@ export function routeData({params}: RouteDataArgs) {
     data = data.map((item: FoodProps) => {
       item.macros = {
         protein: 123,
-        carbo: 123,
+        carbs: 123,
         fat: 12,
       };
       return item;
@@ -88,16 +88,39 @@ export function routeData({params}: RouteDataArgs) {
     return meals as MealProps[];
   });
 
-  const testeFoods = foods();
-  const testeMeals = meals();
+  return { foods, meals };
+}
 
+const ModalShowContext = createContext<Signal<boolean>>();
+
+function ModalShowProvider(props: { children: any }) {
   const [show, setShow] = createSignal(false);
 
-  return { foods, meals, show, setShow };
+  return (
+    <ModalShowContext.Provider value={[show, setShow]}>
+      {props.children}
+    </ModalShowContext.Provider>
+  )
+}
+
+function useModalShow() {
+  const context = useContext(ModalShowContext);
+  if (!context) {
+    throw new Error('useModalShow must be used within a ModalShowProvider')
+  }
+  return context;
 }
 
 const Home: Component = () => {
-  const { foods, meals, show, setShow } = useRouteData<typeof routeData>();
+  return (
+    <ModalShowProvider>
+      <HomeInner />
+    </ModalShowProvider>
+  )
+}
+
+const HomeInner: Component = () => {
+  const { foods, meals } = useRouteData<typeof routeData>();
 
   const macros = () => {
     return sumMacros(meals()?.map?.((meal) =>
@@ -108,8 +131,14 @@ const Home: Component = () => {
       )
     ) ?? [])
   }
+
+  const [show, setShow] = useModalShow();
   const handleClose = () => setShow(false);
   const handleShow = () => setShow(true);
+
+  setInterval(() => {
+    setShow(!show());
+  }, 1000);
 
   return (
     <div>
@@ -117,7 +146,7 @@ const Home: Component = () => {
 
         <Modal
           title="Adicionar item"
-          centered={true}
+          centered={false}
           show={show()}
           contentClass='bg-dark border p-3'
           onHide={handleClose}
@@ -146,7 +175,7 @@ const Home: Component = () => {
             <div class="col mx-auto">
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Carboidrato</span>
-                <ProgressBar variant='success' label={`${macros().carbo}g`} animated={true} min={0} max={200} now={macros().carbo} />
+                <ProgressBar variant='success' label={`${macros().carbs}g`} animated={true} min={0} max={200} now={macros().carbs} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Proteína</span>
@@ -164,7 +193,24 @@ const Home: Component = () => {
           <div class="row g-0 my-3 text-center">
           </div>
 
-          <For
+          {
+            <p>{JSON.stringify(meals())}</p>
+            // <Meal name='1' items={[]} />
+          }
+
+
+          {/* <For
+            each={[{name: '1'}]}
+            fallback={
+              <>
+                <h1 class="text-center text-danger my-5">Nenhuma refeição cadastrada!</h1>
+              </>
+            }
+          >
+            {(meal) => <Meal name={meal.name + Date.now()} items={[]} />}
+          </For> */}
+
+          {/* <For
             each={meals() ?? []}
             fallback={
               <>
@@ -173,7 +219,7 @@ const Home: Component = () => {
             }
           >
             {(meal) => <Meal {...meal} />}
-          </For>
+          </For> */}
         </div>
       </div>
     </div>
@@ -183,7 +229,7 @@ const Home: Component = () => {
 const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsProps) => {
   return (
     <>
-      <span class="text-success"> C: {Math.round(props.carbo)} </span>
+      <span class="text-success"> C: {Math.round(props.carbs)} </span>
       <span class="text-danger"> P: {Math.round(props.protein)} </span>
       <span class="text-warning"> G: {Math.round(props.fat)} </span>
     </>
@@ -191,7 +237,7 @@ const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsPro
 }
 
 const Meal: Component<MealProps> = (props: MealProps) => {
-  const { show, setShow } = useRouteData<typeof routeData>();
+  const [show, setShow] = useModalShow();
 
   const macros = () => sumMacros(
     props.items.map((item) =>
@@ -200,28 +246,28 @@ const Meal: Component<MealProps> = (props: MealProps) => {
   );
 
   return (
-    <div class="row g-0 bg bg-dark rounded p-3 pt-2 mb-2">
-      <div class="col">
-        <div class="row g-0">
-          <span class="fs-1 text-light-emphasis">{props.name}</span>
-        </div>
-        <div class="row g-0 mb-3">
-          <span class=""><MacroNutrients {...macros()} /></span>
-        </div>
-        <For each={props.items}>
-          {
-            (item) =>
-              <MealItem {...item} />
-          }
-        </For>
+    <>
+      <div class="row g-0 bg bg-dark rounded p-3 pt-2 mb-2">
+        <div class="col">
+          <div class="row g-0">
+            <span class="fs-1 text-light-emphasis">{props.name}</span>
+          </div>
+          <div class="row g-0 mb-3">
+            <span class=""><MacroNutrients {...macros()} /></span>
+          </div>
+          <For each={props.items}>
+            {
+              (item) =>
+                <MealItem {...item} />
+            }
+          </For>
 
-        <button class="btn btn-primary w-100 bg p-1" onClick={() => {
-          setShow(true);
-        }}>
-          Adicionar
-        </button>
+          <button class="btn btn-primary w-100 bg p-1" onClick={() => setShow(true)}>
+            Adicionar: {show()? 'true' : 'false'}
+          </button>
+        </div>
       </div>
-    </div >
+    </>
   );
 }
 
@@ -269,7 +315,8 @@ const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
 }
 //TODO: remove export
 export const MealItemAdd: Component<MealItemProps> = () => {
-  const { foods, meals, show, setShow } = useRouteData<typeof routeData>();
+  const { foods, meals } = useRouteData<typeof routeData>();
+  const [show, setShow] = useModalShow();
 
   const [selectedFood, setSelectedFood] = createSignal<FoodProps | undefined>(undefined);
   const [quantity, setQuantity] = createSignal(0);

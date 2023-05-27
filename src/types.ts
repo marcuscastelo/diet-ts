@@ -4,14 +4,10 @@ import { Food } from "./model/foodModel";
 
 export type StoreSig<T> = [get: T, set: SetStoreFunction<T>];
 
-export type FoodProps = Food 
-// {
-//   name: string,
-//   macros: MacroNutrientsProps,
-// }
+export type FoodProps = Food
 
 export type MacroNutrientsProps = {
-  carbo: number,
+  carbs: number,
   protein: number,
   fat: number,
 }

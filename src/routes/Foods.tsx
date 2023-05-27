@@ -12,7 +12,6 @@ export function routeData() {
         let data = await foodController.listFoods();
         data = data.map((item: Food) => {
             item.macros = {
-                calories: 100,
                 protein: 100,
                 carbs: 100,
                 fat: 100,
