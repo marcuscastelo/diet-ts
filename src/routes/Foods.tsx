@@ -2,17 +2,19 @@ import { Component, For, Suspense, createResource } from "solid-js";
 import { useRouteData } from "solid-start";
 import { API } from "./db";
 import { FoodProps } from "~/types";
+import { createServerData$ } from "solid-start/server";
+import { initDB } from "~/utils/surreal_db";
+import * as foodController from "~/controllers/foodController";
+import { Food } from "~/model/foodModel";
 
 export function routeData() {
-    const [foods] = createResource(async () => {
-        let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
-        console.log(`res.data: `, res.data);
-
-        let data = res.data;
-        data = data.map((item: FoodProps) => {
+    const foods = createServerData$(async () => {
+        let data = await foodController.listFoods();
+        data = data.map((item: Food) => {
             item.macros = {
+                calories: 100,
                 protein: 100,
-                carbo: 100,
+                carbs: 100,
                 fat: 100,
             };
             return item;
@@ -36,7 +38,7 @@ const Foods: Component = () => {
                     {(food) => (
                         <div>
                             <h2>{food.name}</h2>
-                            <p>{food.macros.carbo}</p>
+                            <p>{food.macros.carbs}</p>
                             <p>{food.macros.protein}</p>
                             <p>{food.macros.fat}</p>
                         </div>

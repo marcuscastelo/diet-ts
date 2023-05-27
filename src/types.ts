@@ -1,12 +1,14 @@
 import { Accessor, Resource, Signal } from "solid-js";
 import { SetStoreFunction } from "solid-js/store";
+import { Food } from "./model/foodModel";
 
 export type StoreSig<T> = [get: T, set: SetStoreFunction<T>];
 
-export type FoodProps = {
-  name: string,
-  macros: MacroNutrientsProps,
-}
+export type FoodProps = Food 
+// {
+//   name: string,
+//   macros: MacroNutrientsProps,
+// }
 
 export type MacroNutrientsProps = {
   carbo: number,

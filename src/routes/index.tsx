@@ -1,16 +1,16 @@
 import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource } from 'solid-js';
 
-import Fa from 'solid-fa'
-import { faEdit } from '@fortawesome/free-solid-svg-icons'
-import { createStore } from 'solid-js/store';
 import { FoodProps, MacroNutrientsProps, MealItemProps, MealProps, StoreSig } from '../types';
 import { Modal, ProgressBar } from 'solid-bootstrap';
 import CircleProgressBar from '../components/CircleProgressBar';
 import { Select, createOptions } from '@thisbeyond/solid-select';
 import '@thisbeyond/solid-select/style.css'
-import { A, ErrorBoundary, useRouteData } from 'solid-start';
-import { createServerData$ } from 'solid-start/server';
+import { A, ErrorBoundary, RouteDataArgs, useRouteData } from 'solid-start';
 import { API } from './db';
+import * as dayController from '../controllers/dayController';
+import * as foodController from '../controllers/foodController';
+import { initDB } from '~/utils/surreal_db';
+import server$, { createServerData$ } from 'solid-start/server';
 
 function emptyMacros(): MacroNutrientsProps {
   return {
@@ -47,8 +47,8 @@ function macroCalories(macros: MacroNutrientsProps): number {
   return macros.carbo * 4 + macros.protein * 4 + macros.fat * 9;
 }
 
-export function routeData() {
-  const [foods] = createResource(async () => {
+export function routeData({params}: RouteDataArgs) {
+  const foods = createServerData$(async () => {
     let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
 
     let data = res.data;
@@ -67,8 +67,8 @@ export function routeData() {
 
   const [meals] = createResource(async () => {
     let res = await API.get<{ meals: MealProps[] }>('http://localhost:4000/day/20230521');
-
     let data = res.data;
+
     let meals = data.meals;
     meals = meals.map((meal: MealProps) => {
       meal.items = [
