@@ -1,6 +1,6 @@
 import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource, createContext, useContext, Accessor } from 'solid-js';
 
-import { FoodProps, MacroNutrientsProps, MealItemProps, MealProps, StoreSig } from '../types';
+import { FoodProps, StoreSig } from '../types';
 import { Modal, ProgressBar } from 'solid-bootstrap';
 import CircleProgressBar from '../components/CircleProgressBar';
 import { Select, createOptions } from '@thisbeyond/solid-select';
@@ -13,6 +13,8 @@ import { initDB } from '~/utils/surreal_db';
 import server$, { createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
+import { MealData } from '~/model/mealModel';
+import { MealItemData } from '~/model/mealItemModel';
 
 export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
@@ -33,56 +35,23 @@ export function routeData({ params }: RouteDataArgs) {
   });
 
   const [meals] = createResource(async () => {
-    let res = await API.get<{ meals: MealProps[] }>('http://localhost:4000/day/20230521');
+    let res = await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521');
     let data = res.data;
 
     let meals = data.meals;
-    meals = meals.map((meal: MealProps) => {
-      meal.items = [
-        {
-          food: () => foods()?.[0],
-          quantity: 100,
-        } as MealItemProps,
-        {
-          food: () => foods()?.[1],
-          quantity: 200,
-        } as MealItemProps,
-      ]
-      return meal;
-    });
 
     console.log(`Meal count: `, meals.length);
-    return meals as MealProps[];
+    return meals as MealData[];
   });
 
   return { foods, meals };
 }
 
-const ModalShowContext = createContext<Signal<boolean>>();
-
-function ModalShowProvider(props: { children: any }) {
-  const [show, setShow] = createSignal(false);
-
-  return (
-    <ModalShowContext.Provider value={[show, setShow]}>
-      {props.children}
-    </ModalShowContext.Provider>
-  )
-}
-
-function useModalShow() {
-  const context = useContext(ModalShowContext);
-  if (!context) {
-    throw new Error('useModalShow must be used within a ModalShowProvider')
-  }
-  return context;
-}
-
 const Home: Component = () => {
   return (
-    <ModalShowProvider>
       <HomeInner />
-    </ModalShowProvider>
+    // <ModalShowProvider>
+    // </ModalShowProvider>
   )
 }
 
@@ -93,45 +62,15 @@ const HomeInner: Component = () => {
     return sumMacros(meals()?.map?.((meal) =>
       sumMacros(
         meal.items.map((item) =>
-          multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
+          multiplyMacros(item.foodMacros ?? emptyMacros(), item.quantity)
         )
       )
     ) ?? [])
   }
 
-  const [show, setShow] = useModalShow();
-  const handleClose = () => setShow(false);
-  const handleShow = () => setShow(true);
-
-  setInterval(() => {
-    setShow(!show());
-  }, 1000);
-
   return (
     <div>
       <div class="row g-0 bg-black always-full-page">
-
-        <Modal
-          title="Adicionar item"
-          centered={false}
-          show={show()}
-          contentClass='bg-dark border p-3'
-          onHide={handleClose}
-          keyboard={true}
-        >
-          <Modal.Header closeButton closeVariant='white'>
-            <Modal.Title>Adicionar item na refeição</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            Nome do alimento
-            <Suspense fallback={<p>Loading...</p>}>
-              {/* <MealItemAdd
-                {...meals()?.[0].items[0] ?? {} as MealItemProps} //TODO: fix this
-              // {...meals[0]()[0].items[0][0]}
-              /> */}
-            </Suspense>
-          </Modal.Body>
-        </Modal>
         <div class="col-12 col-md-9 mx-auto">
           <div class="row g-0 bg-black">
             <div class="col-6 col-md-4 mx-auto">
@@ -191,121 +130,5 @@ const HomeInner: Component = () => {
     </div>
   );
 };
-
-
-//TODO: remove export
-export const MealItemAdd: Component<MealItemProps> = () => {
-  const { foods, meals } = useRouteData<typeof routeData>();
-  const [show, setShow] = useModalShow();
-
-  const [selectedFood, setSelectedFood] = createSignal<FoodProps | undefined>(undefined);
-  const [quantity, setQuantity] = createSignal(0);
-
-  const foodMacros = () => selectedFood()?.macros;
-  const macros = () => multiplyMacros(foodMacros() || emptyMacros(), quantity());
-
-  const canAdd = () => selectedFood() !== undefined && quantity() > 0;
-
-  const options = createOptions(foods() ?? ['Loading...'], { key: 'name' });
-
-  const handleFilter = (selectedFood: FoodProps) => {
-    //TODO: optimize
-
-    setSelectedFood(selectedFood);
-
-  }
-
-  return (
-    <>
-      <div class="row mb-2 g-0">
-        <div class="col">
-          <Select placeholder='Alimento' class='custom' {...options} onChange={handleFilter} />
-        </div>
-      </div>
-      <div class="row mb-2 g-0">
-        <div class="col">
-          <input type="text" class="form-control custom" placeholder="Quantidade (gramas)" onInput={(e) => setQuantity(parseInt(e.target.value))} maxLength={5} />
-        </div>
-      </div>
-      <div class="row mb-2 g-0 mt-5">
-        <h1>Pré-visualização:</h1>
-        {
-          (selectedFood() === undefined) ?
-            <>
-              <div class="col g-0">
-                <span class="text-warning fs-5">
-                  Nenhum alimento selecionado!
-                </span>
-              </div>
-            </> :
-            <>
-              <div class="col g-0">
-                <div class="row g-0 bg-dark-grey">
-                  <div class="col ps-2">
-                    <span class="fs-4">{selectedFood()?.name}</span>
-                  </div>
-                  <div class="row bg-dark-grey g-0">
-                    <div class="col">
-                      <span class="ps-1">
-                        <MacroNutrients {...macros()} />
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-1 g-0 bg-dark-grey d-flex justify-content-end">
-                <span class="align-self-end p-1 pe-3">
-                  {quantity()}g
-                </span>
-              </div>
-            </>
-        }
-      </div>
-      <div class="row mb-2 g-4 mt-5">
-        <div class="col">
-          <button class="btn btn-secondary w-100 bg p-1" onClick={() => {
-            setShow(false);
-          }}>
-            Cancelar
-          </button>
-        </div>
-        <div class="col">
-          <button disabled={!canAdd()} class={`btn ${canAdd() ? 'btn-primary' : 'btn-dark text-muted'} w-100 bg p-1`} onClick={() => {
-            setShow(false);
-            // props.items[1]([...props.items[0], props.items[0][0]]);
-            const firstMeal = meals()?.[0];
-
-            if (firstMeal === undefined) {
-              console.error('firstMeal is undefined');
-              throw new Error('firstMeal is undefined');
-            }
-
-            const firstMealItemsSetter = firstMeal.items[1];
-            const firstMealItems = firstMeal.items[0];
-
-            const selectedFoodVal = selectedFood();
-            if (selectedFoodVal === undefined) {
-              console.error('selectedFood is undefined');
-              throw new Error('selectedFood is undefined');
-            }
-
-            const newMealItem: MealItemProps = {
-              food: () => selectedFoodVal,
-              quantity: quantity(),
-            };
-
-            // firstMealItemsSetter([...firstMealItems, newMealItem]);
-            console.log(JSON.stringify(firstMealItems, null, 2));
-            //dump to json
-
-            window.scrollBy(0, 67)
-          }}>
-            Adicionar
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
 
 export default Home;

@@ -12,7 +12,7 @@ export type MealItemProps = {
 
 const MealItem: Component<MealItemProps> = ({itemData}: MealItemProps) => {
     // const foodMacros = () => props.food()?.macros ?? emptyMacros();
-    const macros = multiplyMacros(itemData.foodMacros, itemData.quantity);
+    const macros = multiplyMacros(itemData.food.macros, itemData.quantity);
 
     return (
         <>
@@ -21,7 +21,7 @@ const MealItem: Component<MealItemProps> = ({itemData}: MealItemProps) => {
                     <div class="row g-0 bg-dark-grey">
                         <div class="col ps-2">
                             <Suspense fallback={<p>Loading...</p>}>
-                                <span class="fs-4">{itemData.foodName}</span>
+                                <span class="fs-4">{itemData.food.name}</span>
                             </Suspense>
                         </div>
                     </div>

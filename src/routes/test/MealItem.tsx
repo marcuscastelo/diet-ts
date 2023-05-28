@@ -5,15 +5,17 @@ import { MealItemData } from "~/model/mealItemModel";
 
 const Page = () => {
     const itemData: MealItemData = {
-        name: 'Item 1',
         id: '1',
         mealId: '1',
-        foodName: 'Food 1',
         quantity: 200,
-        foodMacros: {
-            carbs: 10,
-            protein: 15,
-            fat: 20,
+        food: {
+            name: 'Food 1',
+            id: '1',
+            macros: {
+                carbs: 10,
+                protein: 15,
+                fat: 20,
+            }
         }
     };
 

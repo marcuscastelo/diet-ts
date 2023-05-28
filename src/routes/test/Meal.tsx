@@ -12,17 +12,19 @@ const Page = () => {
 
     const items: MealItemData[] = [
         {
-            name: 'Item 1',
             id: '1',
             mealId: '1',
-            foodName: 'Food 1',
             quantity: 200,
-            foodMacros: {
-                carbs: 20,
-                protein: 10,
-                fat: 15,
-            }
-        },
+            food: {
+                name: 'Food 1',
+                id: '1',
+                macros: {
+                    carbs: 20,
+                    protein: 10,
+                    fat: 15,
+                }
+            },
+        }
     ];
 
     items.push(items[0]);
