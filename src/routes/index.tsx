@@ -11,6 +11,7 @@ import * as dayController from '../controllers/dayController';
 import * as foodController from '../controllers/foodController';
 import { initDB } from '~/utils/surreal_db';
 import server$, { createServerData$ } from 'solid-start/server';
+import MacroNutrients from '~/components/MacroNutrients';
 
 function emptyMacros(): MacroNutrientsProps {
   return {
@@ -225,16 +226,6 @@ const HomeInner: Component = () => {
     </div>
   );
 };
-
-const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsProps) => {
-  return (
-    <>
-      <span class="text-success"> C: {Math.round(props.carbs)} </span>
-      <span class="text-danger"> P: {Math.round(props.protein)} </span>
-      <span class="text-warning"> G: {Math.round(props.fat)} </span>
-    </>
-  );
-}
 
 const Meal: Component<MealProps> = (props: MealProps) => {
   const [show, setShow] = useModalShow();

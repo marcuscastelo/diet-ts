@@ -1,6 +1,6 @@
 import { Component, For, Suspense, createResource } from "solid-js";
 import { useRouteData } from "solid-start";
-import { API } from "./db";
+import { API } from "../db";
 import { FoodProps } from "~/types";
 import { createServerData$ } from "solid-start/server";
 import { initDB } from "~/utils/surreal_db";
