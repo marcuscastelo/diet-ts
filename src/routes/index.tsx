@@ -12,41 +12,7 @@ import * as foodController from '../controllers/foodController';
 import { initDB } from '~/utils/surreal_db';
 import server$, { createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
-
-function emptyMacros(): MacroNutrientsProps {
-  return {
-    carbs: 0,
-    protein: 0,
-    fat: 0,
-  }
-}
-
-function multiplyMacros(macros: MacroNutrientsProps, quantity: number): MacroNutrientsProps {
-  const multiplier = quantity / 100;
-  return {
-    carbs: macros.carbs * multiplier,
-    protein: macros.protein * multiplier,
-    fat: macros.fat * multiplier,
-  }
-}
-
-function sumMacros([...macros]: MacroNutrientsProps[]): MacroNutrientsProps {
-  return macros.reduce((acc, curr) => {
-    return {
-      carbs: acc.carbs + curr.carbs,
-      protein: acc.protein + curr.protein,
-      fat: acc.fat + curr.fat,
-    }
-  }, {
-    carbs: 0,
-    protein: 0,
-    fat: 0,
-  })
-}
-
-function macroCalories(macros: MacroNutrientsProps): number {
-  return macros.carbs * 4 + macros.protein * 4 + macros.fat * 9;
-}
+import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 
 export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
@@ -199,7 +165,6 @@ const HomeInner: Component = () => {
             // <Meal name='1' items={[]} />
           }
 
-
           {/* <For
             each={[{name: '1'}]}
             fallback={
@@ -226,41 +191,6 @@ const HomeInner: Component = () => {
     </div>
   );
 };
-
-const Meal: Component<MealProps> = (props: MealProps) => {
-  const [show, setShow] = useModalShow();
-
-  const macros = () => sumMacros(
-    props.items.map((item) =>
-      multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
-    )
-  );
-
-  return (
-    <>
-      <div class="row g-0 bg bg-dark rounded p-3 pt-2 mb-2">
-        <div class="col">
-          <div class="row g-0">
-            <span class="fs-1 text-light-emphasis">{props.name}</span>
-          </div>
-          <div class="row g-0 mb-3">
-            <span class=""><MacroNutrients {...macros()} /></span>
-          </div>
-          <For each={props.items}>
-            {
-              (item) =>
-                <MealItem {...item} />
-            }
-          </For>
-
-          <button class="btn btn-primary w-100 bg p-1" onClick={() => setShow(true)}>
-            Adicionar: {show()? 'true' : 'false'}
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
 
 const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
   const foodMacros = () => props.food()?.macros ?? emptyMacros();

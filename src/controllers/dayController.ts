@@ -1,11 +1,11 @@
 import { Result } from "surrealdb.js";
 import db from "../utils/surreal_db";
-import { Day } from "../model/dayModel";
+import { DayData } from "../model/dayModel";
 import { dayId } from "../utils/date";
-import { Meal } from "../model/mealModel";
+import { MealData } from "../model/mealModel";
 import { getFirst, unwrap } from "../utils/result";
 
-const defaultMeals: Meal[] = [
+const defaultMeals: MealData[] = [
     {
         id: "breakfast",
         name: "Breakfast",
@@ -29,17 +29,17 @@ const defaultMeals: Meal[] = [
 ];
 
 export const listDays = async () =>
-    await db.query<Result<Day[]>[]>(
+    await db.query<Result<DayData[]>[]>(
         `select * from day`
     ).then(getFirst).then(unwrap);
 
-export const getDay = async (id: Day['id']) =>
-    await db.query<Result<Day[]>[]>(
+export const getDay = async (id: DayData['id']) =>
+    await db.query<Result<DayData[]>[]>(
         `select * from day:⟨${id}⟩`
     ).then(getFirst).then(unwrap).then(getFirst);
 
-export const createDay = async (id: Day['id']) =>
-    await db.create<Day>(
+export const createDay = async (id: DayData['id']) =>
+    await db.create<DayData>(
         'day', {
             id,
             creationDate: dayId(new Date()),

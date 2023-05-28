@@ -1,7 +1,7 @@
-import { Meal } from "./mealModel";
+import { MealData } from "./mealModel";
 
-export type Day = {
+export type DayData = {
     id: string;
     creationDate: string;
-    meals: Meal[];
+    meals: MealData[];
 };

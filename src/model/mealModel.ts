@@ -1,5 +1,7 @@
-export type Meal = {
+import { MealItemData } from "./mealItemModel";
+
+export type MealData = {
     id: string;
     name: string;
-    items: MealItem[];
+    items: MealItemData[];
 };

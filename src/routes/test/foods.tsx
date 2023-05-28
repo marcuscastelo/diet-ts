@@ -5,12 +5,12 @@ import { FoodProps } from "~/types";
 import { createServerData$ } from "solid-start/server";
 import { initDB } from "~/utils/surreal_db";
 import * as foodController from "~/controllers/foodController";
-import { Food } from "~/model/foodModel";
+import { FoodData } from "~/model/foodModel";
 
 export function routeData() {
     const foods = createServerData$(async () => {
         let data = await foodController.listFoods();
-        data = data.map((item: Food) => {
+        data = data.map((item: FoodData) => {
             item.macros = {
                 protein: 100,
                 carbs: 100,

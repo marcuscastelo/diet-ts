@@ -1,19 +1,19 @@
 import { Result } from "surrealdb.js";
-import { Food } from "../model/foodModel";
+import { FoodData } from "../model/foodModel";
 import { getFirst, unwrap } from "../utils/result";
 import { initDB } from "~/utils/surreal_db";
 
 export const listFoods = async () =>
-    (await initDB()).query<Result<Food[]>[]>(
+    (await initDB()).query<Result<FoodData[]>[]>(
         `select * from food`
     ).then(getFirst).then(unwrap);
 
 export const getFood = async (id: string) =>
-    (await initDB()).query<Result<Food>[]>(`select * from food::${id}`)
+    (await initDB()).query<Result<FoodData>[]>(`select * from food::${id}`)
         .then(getFirst).then(unwrap);
 
 export const searchFoods = async (name: string) =>
-    (await initDB()).query<Result<Food[]>[]>(
+    (await initDB()).query<Result<FoodData[]>[]>(
         `select *, string::len(name) as length, array::len(string::words(name)) as wordCount from food where name ~ '${name}' order by length asc, id asc, wordCount asc` 
     ).then(getFirst).then(unwrap).then(foods => {
         // If name is an exact match, put it at the top of the list

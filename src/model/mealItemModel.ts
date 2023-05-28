@@ -1,9 +1,8 @@
-export type MealItem = {
+import { MacroNutrientsData } from "./macroNutrientsModel";
+
+export type MealItemData = {
+    mealId: string;
     id: string;
     name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    mealId: string;
+    macros: MacroNutrientsData;
 };
