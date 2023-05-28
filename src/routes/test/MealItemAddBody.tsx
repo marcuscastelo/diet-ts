@@ -3,6 +3,7 @@ import MealItemAddBody from "~/components/MealItemAddBody";
 import { FoodData } from "~/model/foodModel";
 import { MealItemData } from "~/model/mealItemModel";
 import { mockFoods } from "./mock/foodMock";
+import { createResource } from "solid-js";
 
 // Just show the component
 
@@ -15,10 +16,16 @@ const Page = () => {
         alert('Add callback: \n' + JSON.stringify(mealItem, null, 2))
     };
 
+    const [foods] = createResource<FoodData[]>(async() => {
+        // Simulate a delay
+        await new Promise(resolve => setTimeout(resolve, 10000));
+        return mockFoods;
+    });
+
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}
-            <MealItemAddBody onCancel={onCancel} onAdd={onAdd} foods={() => mockFoods}/>
+            <MealItemAddBody onCancel={onCancel} onAdd={onAdd} foods={foods}/>
         </>
     );
 };

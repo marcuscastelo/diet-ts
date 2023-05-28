@@ -1,5 +1,5 @@
 import { Modal } from "solid-bootstrap";
-import { Accessor, Component, Setter, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
+import { Accessor, Component, Resource, Setter, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
 import { MealData } from "~/model/mealModel";
 import MealItemAddBody from "./MealItemAddBody";
 import { FoodData } from "~/model/foodModel";
@@ -29,7 +29,7 @@ function useModalShow() {
 type MealItemAddModalProperties = {
     show: Accessor<boolean>;
     setShow: Setter<boolean>;
-    foods: Accessor<FoodData[]>;
+    foods: Resource<FoodData[]>;
     onAdd: (mealItem: MealItemAddData) => void;
     onCancel: () => void;
 }

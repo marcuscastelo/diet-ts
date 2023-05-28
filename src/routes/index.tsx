@@ -1,4 +1,4 @@
-import { For, type Component, createSignal, Signal, Suspense, Setter, lazy, createResource, createContext, useContext, Accessor } from 'solid-js';
+import { For, type Component, createSignal, Signal, Setter, lazy, createResource, createContext, useContext, Accessor, Show, Resource, Suspense } from 'solid-js';
 
 import { FoodProps, StoreSig } from '../types';
 import { Modal, ProgressBar } from 'solid-bootstrap';
@@ -14,58 +14,68 @@ import server$, { createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 import { MealData } from '~/model/mealModel';
-import { MealItemData } from '~/model/mealItemModel';
+import { MealItemAddData, MealItemData } from '~/model/mealItemModel';
+import Meal from '~/components/Meal';
+import MealItemAddModal from '~/components/MealItemAddModal';
+import { FoodData } from '~/model/foodModel';
 
 export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
-    let res = await API.get<FoodProps[]>('http://localhost:4000/food/search?q=frango');
-
-    let data = res.data;
-    data = data.map((item: FoodProps) => {
+    const mockMacros = (item: FoodData) => {
       item.macros = {
         protein: 123,
         carbs: 123,
         fat: 12,
       };
       return item;
-    });
+    };
 
-    console.log(`Food count: `, data.length);
-    return data;
+    return (await API.get<FoodData[]>('http://localhost:4000/food/search?q=frango')).data.map(mockMacros);
   });
 
-  const [meals] = createResource(async () => {
-    let res = await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521');
-    let data = res.data;
-
-    let meals = data.meals;
-
-    console.log(`Meal count: `, meals.length);
-    return meals as MealData[];
+  const meals = createServerData$(async () => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return (await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521'))
+      .data
+      .meals;
   });
+
 
   return { foods, meals };
 }
 
 const Home: Component = () => {
   return (
-      <HomeInner />
+    <HomeInner />
     // <ModalShowProvider>
     // </ModalShowProvider>
   )
 }
 
 const HomeInner: Component = () => {
+  const [showModal, setShowModal] = createSignal(false);
   const { foods, meals } = useRouteData<typeof routeData>();
 
   const macros = () => {
     return sumMacros(meals()?.map?.((meal) =>
       sumMacros(
         meal.items.map((item) =>
-          multiplyMacros(item.foodMacros ?? emptyMacros(), item.quantity)
+          multiplyMacros(item.food.macros ?? emptyMacros(), item.quantity)
         )
       )
     ) ?? [])
+  }
+
+  const onAddItemRequest = () => {
+    setShowModal(true);
+  }
+
+  const onItemAdded = (item: MealItemAddData) => {
+    alert('item added:\n' + JSON.stringify(item, null, 2));
+  }
+
+  const onItemCanceled = () => {
+    alert('item canceled');
   }
 
   return (
@@ -99,32 +109,28 @@ const HomeInner: Component = () => {
           <div class="row g-0 my-3 text-center">
           </div>
 
+          <Suspense fallback={<p>Loading foods...</p>}>
+            <MealItemAddModal
+              show={showModal}
+              setShow={setShowModal}
+              foods={foods as Resource<FoodProps[]>}
+              onAdd={onItemAdded}
+              onCancel={onItemCanceled}
+            />
+          </Suspense>
+
+          <Suspense fallback={<p>Loading meals...</p>}>
+            <Show when={meals()?.length ?? 0 > 0}>
+              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[0]} />
+              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[1]} />
+              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[2]} />
+              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[3]} />
+            </Show>
+          </Suspense>
+
           {
             <p>{JSON.stringify(meals())}</p>
-            // <Meal name='1' items={[]} />
           }
-
-          {/* <For
-            each={[{name: '1'}]}
-            fallback={
-              <>
-                <h1 class="text-center text-danger my-5">Nenhuma refeição cadastrada!</h1>
-              </>
-            }
-          >
-            {(meal) => <Meal name={meal.name + Date.now()} items={[]} />}
-          </For> */}
-
-          {/* <For
-            each={meals() ?? []}
-            fallback={
-              <>
-                <h1 class="text-center text-danger my-5">Nenhuma refeição cadastrada!</h1>
-              </>
-            }
-          >
-            {(meal) => <Meal {...meal} />}
-          </For> */}
         </div>
       </div>
     </div>

@@ -1,8 +1,9 @@
-import { createSignal } from "solid-js";
+import { createResource, createSignal } from "solid-js";
 import MealItemAddModal from "~/components/MealItemAddModal";
 import { mockFoods } from "./mock/foodMock";
 import { isServer } from "solid-js/web";
 import { MealItemAddData } from "~/model/mealItemModel";
+import { FoodData } from "~/model/foodModel";
 
 // Just show the component
 
@@ -17,13 +18,20 @@ const Page = () => {
         alert('Cancel callback')
     };
 
+    const [food] = createResource<FoodData[]>(async() => {
+        // Simulate a delay
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        alert('Foods loaded');
+        return mockFoods;
+    });
+
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}
             <button onClick={() => setShow(!show())}>Toggle</button>
             <MealItemAddModal
                 show={show} setShow={setShow} 
-                foods={() => mockFoods} 
+                foods={food} 
                 onAdd={onAdd}
                 onCancel={onCancel}
             />

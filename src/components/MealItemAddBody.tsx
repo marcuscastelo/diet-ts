@@ -1,22 +1,21 @@
 import { Select, createOptions } from "@thisbeyond/solid-select";
 import { Modal } from "solid-bootstrap";
-import { Accessor, Component, Show, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
+import { Accessor, Component, Resource, Show, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
 import { FoodData } from "~/model/foodModel";
 import { MealData } from "~/model/mealModel";
 import MacroNutrients from "./MacroNutrients";
 import { emptyMacros, multiplyMacros } from "~/utils/macros";
 import { MealItemAddData, MealItemData } from "~/model/mealItemModel";
+import { isServer } from "solid-js/web";
 
 type MealItemAddBodyProperties = {
     onCancel: () => void;
     onAdd: (mealItem: MealItemAddData) => void;
-    foods: Accessor<FoodData[]>;
+    foods: Resource<FoodData[]>;
 }
 
 const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
     const { foods, onAdd, onCancel } = props;
-
-    // const [show, setShow] = useModalShow();
 
     const [selectedFood, setSelectedFood] = createSignal<FoodData | undefined>(undefined);
     const [quantity, setQuantity] = createSignal(0);
@@ -26,7 +25,9 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
 
     const canAdd = () => selectedFood() !== undefined && quantity() > 0;
 
-    const options = createOptions(foods() ?? ['Loading...'], { key: 'name' });
+    const fallback = [{name: 'Carregando...'}]
+
+    const options = (foods: FoodData[] | undefined) => createOptions(foods ?? fallback, { key: 'name' });
 
     const handleFilter = (selectedFood: FoodData) => {
         //TODO: optimize
@@ -37,7 +38,9 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
         <>
             <div class="row mb-2 g-0">
                 <div class="col">
-                    <Select placeholder='Alimento' class='custom' {...options} onChange={handleFilter} />
+                    <Suspense fallback={<div>fallback: Loading...</div>}>
+                        <Select placeholder='Alimento' class='custom' {...options(foods.latest)} onChange={handleFilter} />
+                    </Suspense>
                 </div>
             </div>
             <div class="row mb-2 g-0">
