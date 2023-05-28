@@ -5,9 +5,7 @@ import { FoodData } from "~/model/foodModel";
 import { MealData } from "~/model/mealModel";
 import MacroNutrients from "./MacroNutrients";
 import { emptyMacros, multiplyMacros } from "~/utils/macros";
-import { MealItemData } from "~/model/mealItemModel";
-
-type MealItemAddData = Omit<MealItemData, 'id' | 'mealId'>;
+import { MealItemAddData, MealItemData } from "~/model/mealItemModel";
 
 type MealItemAddBodyProperties = {
     onCancel: () => void;

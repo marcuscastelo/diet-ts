@@ -1,6 +1,10 @@
 import { Modal } from "solid-bootstrap";
-import { Component, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
+import { Accessor, Component, Setter, Signal, Suspense, createContext, createSignal, useContext } from "solid-js";
 import { MealData } from "~/model/mealModel";
+import MealItemAddBody from "./MealItemAddBody";
+import { FoodData } from "~/model/foodModel";
+import { mockFoods } from "~/routes/test/mock/foodMock";
+import { MealItemAddData } from "~/model/mealItemModel";
 
 const ModalShowContext = createContext<Signal<boolean>>();
 
@@ -22,11 +26,28 @@ function useModalShow() {
     return context;
 }
 
-const MealItemAddModal: Component<MealData> = (props) => {
-    const [show, setShow] = useModalShow();
-    const handleClose = () => setShow(false);
-    const handleShow = () => setShow(true);
+type MealItemAddModalProperties = {
+    show: Accessor<boolean>;
+    setShow: Setter<boolean>;
+    foods: Accessor<FoodData[]>;
+    onAdd: (mealItem: MealItemAddData) => void;
+    onCancel: () => void;
+}
 
+const MealItemAddModal: Component<MealItemAddModalProperties> = (props) => {
+    const {show, setShow, foods} = props;
+    const handleClose = () => setShow(false);
+
+    const onAdd = (mealItem: MealItemAddData) => {
+        props.onAdd(mealItem);
+        handleClose();
+    };
+
+    const onCancel = () => {
+        props.onCancel();
+        handleClose();
+    };
+    
     return (
         <Modal
             title="Adicionar item"
@@ -42,12 +63,11 @@ const MealItemAddModal: Component<MealData> = (props) => {
             <Modal.Body>
                 Nome do alimento
                 <Suspense fallback={<p>Loading...</p>}>
-                    {/* <MealItemAdd
-                {...meals()?.[0].items[0] ?? {} as MealItemProps} //TODO: fix this
-              // {...meals[0]()[0].items[0][0]}
-              /> */}
+                    <MealItemAddBody foods={foods} onAdd={onAdd} onCancel={onCancel}/>
                 </Suspense>
             </Modal.Body>
         </Modal>
     );
-}s
+}
+
+export default MealItemAddModal;
