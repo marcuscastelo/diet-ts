@@ -3,6 +3,7 @@ import { For, type Component } from 'solid-js';
 import MacroNutrients from './MacroNutrients';
 import { MealData } from '~/model/mealModel';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
+import MealItem from './MealItem';
 
 export type MealProps = {
     onAddItem: () => void,
@@ -27,12 +28,12 @@ const Meal: Component<MealProps> = ({mealData, onAddItem}: MealProps) => {
             <div class="row g-0 mb-3">
               <span class=""><MacroNutrients {...macros()} /></span>
             </div>
-            {/* <For each={mealData.items}>
+            <For each={mealData.items}>
               {
                 (item) =>
-                  <MealItem {...item} />
+                  <MealItem itemData={item} />
               }
-            </For> */}
+            </For>
   
             <button class="btn btn-primary w-100 bg p-1" onClick={onAddItem}>
               Adicionar

@@ -4,5 +4,7 @@ export type MealItemData = {
     mealId: string;
     id: string;
     name: string;
+    foodName: string;
+    quantity: number;
     macros: MacroNutrientsData;
 };
