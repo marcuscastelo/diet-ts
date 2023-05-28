@@ -14,8 +14,7 @@ export type MealProps = {
 
 const Meal: Component<MealProps> = ({mealData, onAddItem}: MealProps) => {
     const macros = () => sumMacros(
-      mealData.items.map(item => item.macros)
-        // multiplyMacros(item.food()?.macros ?? emptyMacros(), item.quantity)
+      mealData.items.map(item => multiplyMacros(item.foodMacros, item.quantity))
     );
 
     return (

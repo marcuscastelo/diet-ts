@@ -9,11 +9,11 @@ const Page = () => {
         id: '1',
         mealId: '1',
         foodName: 'Food 1',
-        quantity: 100,
-        macros: {
-            protein: 10,
+        quantity: 200,
+        foodMacros: {
             carbs: 10,
-            fat: 10,
+            protein: 15,
+            fat: 20,
         }
     };
 

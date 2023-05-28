@@ -16,14 +16,17 @@ const Page = () => {
             id: '1',
             mealId: '1',
             foodName: 'Food 1',
-            quantity: 100,
-            macros: {
+            quantity: 200,
+            foodMacros: {
+                carbs: 20,
                 protein: 10,
-                carbs: 10,
-                fat: 10,
+                fat: 15,
             }
         },
     ];
+
+    items.push(items[0]);
+
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}

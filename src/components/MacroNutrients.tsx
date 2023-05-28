@@ -1,6 +1,7 @@
 import { type Component } from 'solid-js';
+import { MacroNutrientsData } from '~/model/macroNutrientsModel';
 
-import { MacroNutrientsProps } from '../types';
+type MacroNutrientsProps = MacroNutrientsData;
 
 const MacroNutrients: Component<MacroNutrientsProps> = (props: MacroNutrientsProps) => {
     return (

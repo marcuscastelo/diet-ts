@@ -1,6 +1,6 @@
-import { MacroNutrientsProps } from "~/types";
+import { MacroNutrientsData } from "~/model/macroNutrientsModel";
 
-export function emptyMacros(): MacroNutrientsProps {
+export function emptyMacros(): MacroNutrientsData {
     return {
         carbs: 0,
         protein: 0,
@@ -8,7 +8,7 @@ export function emptyMacros(): MacroNutrientsProps {
     }
 }
 
-export function multiplyMacros(macros: MacroNutrientsProps, quantity: number): MacroNutrientsProps {
+export function multiplyMacros(macros: MacroNutrientsData, quantity: number): MacroNutrientsData {
     const multiplier = quantity / 100;
     return {
         carbs: macros.carbs * multiplier,
@@ -17,7 +17,7 @@ export function multiplyMacros(macros: MacroNutrientsProps, quantity: number): M
     }
 }
 
-export function sumMacros([...macros]: MacroNutrientsProps[]): MacroNutrientsProps {
+export function sumMacros([...macros]: MacroNutrientsData[]): MacroNutrientsData {
     return macros.reduce((acc, curr) => {
         return {
             carbs: acc.carbs + curr.carbs,
@@ -31,6 +31,6 @@ export function sumMacros([...macros]: MacroNutrientsProps[]): MacroNutrientsPro
     })
 }
 
-export function macroCalories(macros: MacroNutrientsProps): number {
+export function macroCalories(macros: MacroNutrientsData): number {
     return macros.carbs * 4 + macros.protein * 4 + macros.fat * 9;
 }
