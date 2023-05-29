@@ -9,7 +9,6 @@ import { A, ErrorBoundary, RouteDataArgs, useRouteData } from 'solid-start';
 import { API } from './db';
 import * as dayController from '../controllers/dayController';
 import * as foodController from '../controllers/foodController';
-import { initDB } from '~/utils/surreal_db';
 import server$, { createServerAction$, createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
@@ -18,29 +17,24 @@ import { MealItemAddData, MealItemData } from '~/model/mealItemModel';
 import Meal from '~/components/Meal';
 import MealItemAddModal from '~/components/MealItemAddModal';
 import { FoodData } from '~/model/foodModel';
-import { ifError } from 'assert';
+import { dayId } from '~/utils/date';
+
+const todayId = dayId(new Date());
 
 export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
-    const mockMacros = (item: FoodData) => {
-      item.macros = {
+    const mockMacros = (food: Omit<FoodData, 'macros'>) => ({
+      ...food,
+      macros: {
         protein: 123,
         carbs: 123,
         fat: 12,
-      };
-      return item;
-    };
-
-    return (await API.get<FoodData[]>('http://localhost:4000/food/search?q=frango')).data?.map(mockMacros);
+      },
+    } as FoodData);
+    return (await foodController.listFoods()).map(mockMacros);
   });
 
-  const meals = createServerData$(async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    return (await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521?create=true'))
-      .data
-      .meals;
-  });
-
+  const meals = createServerData$(async () => (await dayController.getDay(todayId, true)).meals);
 
   return { foods, meals };
 }
@@ -55,6 +49,7 @@ const Home: Component = () => {
 
 const HomeInner: Component = () => {
   const [showModal, setShowModal] = createSignal(false);
+  const [requestedMealId, setRequestedMealId] = createSignal<string | null>(null);
   const { foods, meals } = useRouteData<typeof routeData>();
 
   const macros = () => {
@@ -67,20 +62,45 @@ const HomeInner: Component = () => {
     ) ?? [])
   }
 
-  const [itemAddition, addItem] = createServerAction$(async (item: MealItemAddData) => {
-    dayController.createDay
+  const [itemAddition, addItem] = createServerAction$(async ({ item, mealId }: { item: MealItemAddData, mealId: string }) => {
+    const today = await dayController.getDay(todayId, false);
+    const meal = today.meals.find((meal) => meal.id === mealId);
+    if (!meal) {
+      throw new Error('Meal not found');
+    }
+
+    const mealItem: MealItemData = {
+      id: '123',
+      food: item.food,
+      quantity: item.quantity,
+      mealId: meal.id,
+    };
+
+    meal.items.push(mealItem);
+
+    await dayController.updateDay(today);
   });
 
-  const onAddItemRequest = async () => {
+  const onAddItemRequest = async (mealId: string) => {
     setShowModal(true);
+    setRequestedMealId(mealId);
   }
 
   const onItemAdded = (item: MealItemAddData) => {
-    addItem(item);
-    alert('item added:\n' + JSON.stringify(item, null, 2));
+    if (!requestedMealId()) {
+      throw new Error('Bug: requestedMealId is null');
+    }
+
+    addItem({
+      item,
+      mealId: requestedMealId()!,
+    });
+
+    setRequestedMealId(null);
   }
 
   const onItemCanceled = () => {
+    setRequestedMealId(null);
   }
 
   return (
@@ -130,10 +150,10 @@ const HomeInner: Component = () => {
 
           <Suspense fallback={<p>Loading meals...</p>}>
             <Show when={meals()?.length ?? 0 > 0}>
-              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[0]} />
-              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[1]} />
-              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[2]} />
-              <Meal onAddItem={onAddItemRequest} mealData={(meals() as MealData[])[3]} />
+              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[0].id)} mealData={(meals() as MealData[])[0]} />
+              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[1].id)} mealData={(meals() as MealData[])[1]} />
+              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)} mealData={(meals() as MealData[])[2]} />
+              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[3].id)} mealData={(meals() as MealData[])[3]} />
             </Show>
           </Suspense>
 

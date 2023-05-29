@@ -12,7 +12,10 @@ export type MealItemProps = {
 
 const MealItem: Component<MealItemProps> = ({itemData}: MealItemProps) => {
     // const foodMacros = () => props.food()?.macros ?? emptyMacros();
-    const macros = multiplyMacros(itemData.food.macros, itemData.quantity);
+    const macros = multiplyMacros(
+        // itemData.food.macros, itemData.quantity);
+        emptyMacros(), 0);
+        
 
     return (
         <>
