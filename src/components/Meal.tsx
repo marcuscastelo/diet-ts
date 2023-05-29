@@ -4,15 +4,19 @@ import MacroNutrients from './MacroNutrients';
 import { MealData } from '~/model/mealModel';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 import MealItem from './MealItem';
+import { MealItemData } from '~/model/mealItemModel';
 
 export type MealProps = {
     onAddItem: () => Promise<void>,
+    onEditItem: (item: MealItemData) => Promise<void>,
+    onDeleteItem: (item: MealItemData) => Promise<void>,
     mealData: MealData,
     // name: string,
     // items: MealItemProps[],
 }
 
-const Meal: Component<MealProps> = ({mealData, onAddItem}: MealProps) => {
+const Meal: Component<MealProps> = (props: MealProps) => {
+    const { mealData, onAddItem, onEditItem, onDeleteItem } = props;
     const macros = () => sumMacros(
       mealData.items.map(item => multiplyMacros(item.food.macros, item.quantity))
     );
@@ -30,7 +34,7 @@ const Meal: Component<MealProps> = ({mealData, onAddItem}: MealProps) => {
             <For each={mealData.items}>
               {
                 (item) =>
-                  <MealItem itemData={item} />
+                  <MealItem itemData={item} onEdit={()=>onEditItem(item)} onDelete={()=>onDeleteItem(item)} />
               }
             </For>
   

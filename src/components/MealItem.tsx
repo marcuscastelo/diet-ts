@@ -5,13 +5,14 @@ import { emptyMacros, multiplyMacros } from "~/utils/macros";
 import { MealItemData } from "~/model/mealItemModel";
 
 export type MealItemProps = {
-    // food: Accessor<FoodProps>,
-    // quantity: number,
+    onEdit: () => Promise<void>,
+    onDelete: () => Promise<void>,
     itemData: MealItemData,
 }
 
-const MealItem: Component<MealItemProps> = ({ itemData }: MealItemProps) => {
-    // const foodMacros = () => props.food()?.macros ?? emptyMacros();
+const MealItem: Component<MealItemProps> = (props: MealItemProps) => {
+    const { itemData, onEdit, onDelete } = props;
+
     const macros = multiplyMacros(
         itemData.food.macros, itemData.quantity);
 
@@ -40,18 +41,27 @@ const MealItem: Component<MealItemProps> = ({ itemData }: MealItemProps) => {
                         {itemData.quantity}g
                     </span>
                 </div>
-                <div class="col col-2 col-sm-1 bg-dark-grey g-0 d-flex justify-content-center border-start border-dark">
-                    <div class="pt-2">
-                        <A href="/foods" >
-                            <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
-                                <i class="fas fa-edit fs-2 mt-2">asdf</i>
-                                <i class="bi bi-airplane">dd</i>
-                                <i class="bi bi-airplane"></i>
-                            </ErrorBoundary>
-                        </A>
+                <div class="col col-2 col-sm-1 bg-dark-grey text-end pe-3 g-0 border-dark">
+                    <div class="row g-0">
+                        <div class="col col-12">
+                            <A href="" onClick={onEdit} >
+                                <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
+                                    <i class="fas fa-edit fs-5">Edit</i>
+                                </ErrorBoundary>
+                            </A>
+                        </div>
+                    </div>
+                    <div class="row g-0">
+                        <div class="col col-12">
+                            <A href="" onClick={onDelete} >
+                                <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
+                                    <i class="fas fa-edit fs-5">Del</i>
+                                </ErrorBoundary>
+                            </A>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </div >
         </>
     );
 }

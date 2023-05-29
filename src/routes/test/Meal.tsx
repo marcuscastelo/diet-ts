@@ -1,12 +1,11 @@
 import { isServer } from 'solid-js/web';
-import { clientOnly } from 'solid-start/islands';
 import Meal from '~/components/Meal';
 import { MealItemData } from '~/model/mealItemModel';
 
 // Just show the component
 
 const Page = () => {
-    const onAddItem = () => {
+    const onAddItem =  async () => {
         alert('Add item callback' + (isServer ? ' (server)' : ' (client)'))
     };
 
@@ -29,10 +28,18 @@ const Page = () => {
 
     items.push(items[0]);
 
+    const onEditItem = async (item: MealItemData) => {
+        alert('Edit item callback' + (isServer ? ' (server)' : ' (client)') + '\n' + JSON.stringify(item, null, 2))
+    };
+
+    const onDeleteItem = async (item: MealItemData) => {
+        alert('Delete item callback' + (isServer ? ' (server)' : ' (client)') + '\n' + JSON.stringify(item, null, 2))
+    };
+
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}
-            <Meal mealData={{ id: '1', name: "Meal", items: items }} onAddItem={onAddItem} />
+            <Meal mealData={{ id: '1', name: "Meal", items: items }} onAddItem={onAddItem} onEditItem={onEditItem} onDeleteItem={onDeleteItem} />
         </>
     );
 };

@@ -6,7 +6,6 @@ import CircleProgressBar from '../components/CircleProgressBar';
 import { Select, createOptions } from '@thisbeyond/solid-select';
 import '@thisbeyond/solid-select/style.css'
 import { A, ErrorBoundary, RouteDataArgs, useRouteData } from 'solid-start';
-import { API } from './db';
 import * as dayController from '../controllers/dayController';
 import * as foodController from '../controllers/foodController';
 import server$, { createServerAction$, createServerData$ } from 'solid-start/server';
@@ -18,6 +17,7 @@ import Meal from '~/components/Meal';
 import MealItemAddModal from '~/components/MealItemAddModal';
 import { FoodData } from '~/model/foodModel';
 import { dayId } from '~/utils/date';
+import { isServer } from 'solid-js/web';
 
 const todayId = dayId(new Date());
 
@@ -62,11 +62,12 @@ const HomeInner: Component = () => {
     ) ?? [])
   }
 
+  // Add action
   const [itemAddition, addItem] = createServerAction$(async ({ item, mealId }: { item: MealItemAddData, mealId: string }) => {
     const today = await dayController.getDay(todayId, false);
     const meal = today.meals.find((meal) => meal.id === mealId);
     if (!meal) {
-      throw new Error('Meal not found');
+      throw new Error(`Meal ${mealId} not found in today's meals (todayId: ${todayId})`);
     }
 
     const mealItem: MealItemData = {
@@ -81,11 +82,18 @@ const HomeInner: Component = () => {
     await dayController.updateDay(today);
   });
 
+  // Add request
   const onAddItemRequest = async (mealId: string) => {
     setShowModal(true);
     setRequestedMealId(mealId);
   }
 
+  // Add request cancel
+  const onItemCanceled = () => {
+    setRequestedMealId(null);
+  }
+
+  // Add request confirm
   const onItemAdded = (item: MealItemAddData) => {
     if (!requestedMealId()) {
       throw new Error('Bug: requestedMealId is null');
@@ -99,8 +107,53 @@ const HomeInner: Component = () => {
     setRequestedMealId(null);
   }
 
-  const onItemCanceled = () => {
-    setRequestedMealId(null);
+  // Edit action
+  const [itemEdition, editItem] = createServerAction$(async ({ item }: { item: MealItemData }) => {
+    const today = await dayController.getDay(todayId, false);
+    const meal = today.meals.find((meal) => meal.id === item.mealId);
+    if (!meal) {
+      throw new Error(`Meal ${item.mealId} not found in today's meals (todayId: ${todayId})`);
+    }
+
+    const mealItem = meal.items.find((mealItem) => mealItem.id === item.id);
+
+    if (!mealItem) {
+      throw new Error(`Meal item ${item.id} not found in today's meals (todayId: ${todayId})`);
+    }
+
+    mealItem.food = item.food;
+    mealItem.quantity = item.quantity + 1; //TODO: proper edition
+
+    await dayController.updateDay(today);
+  });
+
+  // Edit request
+  const onEditItemRequest = async (item: MealItemData) => {
+    editItem({ item });
+  }
+
+  // Delete action
+  const [itemDeletion, deleteItem] = createServerAction$(async ({ item }: { item: MealItemData }) => {
+    const today = await dayController.getDay(todayId, false);
+    const meal = today.meals.find((meal) => meal.id === item.mealId);
+    if (!meal) {
+      throw new Error(`Meal ${item.mealId} not found in today's meals (todayId: ${todayId})`);
+    }
+
+    const mealItemIndex = meal.items.findIndex((mealItem) => mealItem.id === item.id);
+    
+    if (mealItemIndex === -1) {
+      throw new Error(`Meal item ${item.id} not found in today's meals (todayId: ${todayId})`);
+    }
+
+    meal.items.splice(mealItemIndex, 1);
+
+    await dayController.updateDay(today);
+  });
+
+  // Delete request
+  const onDeleteItemRequest = async (item: MealItemData) => {
+    deleteItem({ item });
   }
 
   return (
@@ -133,9 +186,15 @@ const HomeInner: Component = () => {
           </div>
           <div class="row g-0 my-3 text-center">
           </div>
-
+          {isServer ? <div> Server </div> : <div> Client </div>}
           <Show when={itemAddition.pending}>
             <p>Adding item...</p>
+          </Show>
+          <Show when={itemEdition.pending}>
+            <p>Editing item...</p>
+          </Show>
+          <Show when={itemDeletion.pending}>
+            <p>Deleting item...</p>
           </Show>
 
           <Suspense fallback={<p>Loading foods...</p>}>
@@ -150,10 +209,30 @@ const HomeInner: Component = () => {
 
           <Suspense fallback={<p>Loading meals...</p>}>
             <Show when={meals()?.length ?? 0 > 0}>
-              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[0].id)} mealData={(meals() as MealData[])[0]} />
-              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[1].id)} mealData={(meals() as MealData[])[1]} />
-              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)} mealData={(meals() as MealData[])[2]} />
-              <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[3].id)} mealData={(meals() as MealData[])[3]} />
+              <Meal
+                mealData={(meals() as MealData[])[0]}
+                onAddItem={() => onAddItemRequest((meals() as MealData[])[0].id)}
+                onEditItem={(item) => onEditItemRequest(item)}
+                onDeleteItem={(item) => onDeleteItemRequest(item)}
+              />
+              <Meal
+                mealData={(meals() as MealData[])[1]}
+                onAddItem={() => onAddItemRequest((meals() as MealData[])[1].id)}
+                onEditItem={(item) => onEditItemRequest(item)}
+                onDeleteItem={(item) => onDeleteItemRequest(item)}
+              />
+              <Meal
+                mealData={(meals() as MealData[])[2]}
+                onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)}
+                onEditItem={(item) => onEditItemRequest(item)}
+                onDeleteItem={(item) => onDeleteItemRequest(item)}
+              />
+              <Meal
+                mealData={(meals() as MealData[])[3]}
+                onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)}
+                onEditItem={(item) => onEditItemRequest(item)}
+                onDeleteItem={(item) => onDeleteItemRequest(item)}
+              />
             </Show>
           </Suspense>
         </div>

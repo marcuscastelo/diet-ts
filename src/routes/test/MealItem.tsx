@@ -19,9 +19,17 @@ const Page = () => {
         }
     };
 
+    const onEdit = async () => {
+        alert('Edit');
+    }
+
+    const onDelete = async () => {
+        alert('Delete');
+    }
+
     return (
         <>
-            <MealItem itemData={itemData} />
+            <MealItem itemData={itemData} onEdit={onEdit} onDelete={onDelete} />
         </>
     );
 }
