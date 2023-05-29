@@ -10,12 +10,11 @@ export type MealItemProps = {
     itemData: MealItemData,
 }
 
-const MealItem: Component<MealItemProps> = ({itemData}: MealItemProps) => {
+const MealItem: Component<MealItemProps> = ({ itemData }: MealItemProps) => {
     // const foodMacros = () => props.food()?.macros ?? emptyMacros();
     const macros = multiplyMacros(
-        // itemData.food.macros, itemData.quantity);
-        emptyMacros(), 0);
-        
+        itemData.food.macros, itemData.quantity);
+
 
     return (
         <>
@@ -47,6 +46,7 @@ const MealItem: Component<MealItemProps> = ({itemData}: MealItemProps) => {
                             <ErrorBoundary fallback={(e) => <div>{e.message}</div>}>
                                 <i class="fas fa-edit fs-2 mt-2">asdf</i>
                                 <i class="bi bi-airplane">dd</i>
+                                <i class="bi bi-airplane"></i>
                             </ErrorBoundary>
                         </A>
                     </div>

@@ -51,7 +51,7 @@ const MealItemAddModal: Component<MealItemAddModalProperties> = (props) => {
     return (
         <Modal
             title="Adicionar item"
-            centered={false}
+            centered={true}
             show={show()}
             contentClass='bg-dark border p-3'
             onHide={handleClose}

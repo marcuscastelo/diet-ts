@@ -156,10 +156,6 @@ const HomeInner: Component = () => {
               <Meal onAddItem={() => onAddItemRequest((meals() as MealData[])[3].id)} mealData={(meals() as MealData[])[3]} />
             </Show>
           </Suspense>
-
-          {
-            <p>{JSON.stringify(meals())}</p>
-          }
         </div>
       </div>
     </div>
