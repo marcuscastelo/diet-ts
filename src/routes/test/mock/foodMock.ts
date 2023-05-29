@@ -10,4 +10,13 @@ export const mockFoods: FoodData[] = [
             fat: 20,
         }
     },
+    {
+        name: 'Food 2',
+        id: '2',
+        macros: {
+            carbs: 210,
+            protein: 215,
+            fat: 220,
+        }
+    },
 ];

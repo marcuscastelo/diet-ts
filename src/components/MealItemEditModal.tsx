@@ -1,22 +1,24 @@
 import { Modal } from "solid-bootstrap";
 import { Accessor, Component, Resource, Setter, Suspense } from "solid-js";
-import MealItemAddBody from "./MealItemAddBody";
+import MealItemEditBody from "./MealItemEditBody";
 import { FoodData } from "~/model/foodModel";
-import { MealItemAddData } from "~/model/mealItemModel";
+import { MealItemData, MealItemEditData } from "~/model/mealItemModel";
+import { mockFoods } from "~/routes/test/mock/foodMock";
 
-type MealItemAddModalProperties = {
+type MealItemEditModalProperties = {
     show: Accessor<boolean>;
     setShow: Setter<boolean>;
+    mealItem: MealItemEditData;
     foods: Resource<FoodData[]>;
-    onSave: (mealItem: MealItemAddData) => void;
+    onSave: (mealItem: MealItemEditData) => void;
     onCancel: () => void;
 }
 
-const MealItemAddModal: Component<MealItemAddModalProperties> = (props) => {
-    const {show, setShow, foods} = props;
+const MealItemEditModal: Component<MealItemEditModalProperties> = (props) => {
+    const {show, setShow, foods, mealItem} = props;
     const handleClose = () => setShow(false);
 
-    const onSave = (mealItem: MealItemAddData) => {
+    const onSave = (mealItem: MealItemEditData) => {
         props.onSave(mealItem);
         handleClose();
     };
@@ -25,7 +27,7 @@ const MealItemAddModal: Component<MealItemAddModalProperties> = (props) => {
         props.onCancel();
         handleClose();
     };
-    
+
     return (
         <Modal
             title="Adicionar item"
@@ -41,11 +43,11 @@ const MealItemAddModal: Component<MealItemAddModalProperties> = (props) => {
             <Modal.Body>
                 Nome do alimento
                 <Suspense fallback={<p>Loading...</p>}>
-                    <MealItemAddBody foods={foods} onSave={onSave} onCancel={onCancel}/>
+                    <MealItemEditBody mealItem={mealItem} foods={foods} onSave={onSave} onCancel={onCancel}/>
                 </Suspense>
             </Modal.Body>
         </Modal>
     );
 }
 
-export default MealItemAddModal;
+export default MealItemEditModal;

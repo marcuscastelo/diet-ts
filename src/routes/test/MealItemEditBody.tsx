@@ -1,5 +1,5 @@
 import { isServer } from "solid-js/web";
-import MealItemAddBody from "~/components/MealItemAddBody";
+import MealItemEditBody from "~/components/MealItemEditBody";
 import { FoodData } from "~/model/foodModel";
 import { MealItemData } from "~/model/mealItemModel";
 import { mockFoods } from "./mock/foodMock";
@@ -12,8 +12,8 @@ const Page = () => {
         alert('Cancel callback')
     };
 
-    const onAdd = (mealItem: Partial<MealItemData>) => {
-        alert('Add callback: \n' + JSON.stringify(mealItem, null, 2))
+    const onSave = (mealItem: Partial<MealItemData>) => {
+        alert('Edit callback: \n' + JSON.stringify(mealItem, null, 2))
     };
 
     const [foods] = createResource<FoodData[]>(async () => {
@@ -22,10 +22,17 @@ const Page = () => {
         return mockFoods;
     });
 
+    const dummyItem: MealItemData = {
+        food: mockFoods[1],
+        quantity: 1,
+        id: '1',
+        mealId: '1',
+    };
+
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}
-            <MealItemAddBody onCancel={onCancel} onSave={onAdd} foods={foods} />
+            <MealItemEditBody mealItem={() => dummyItem} onCancel={onCancel} onSave={onSave} foods={foods} />
         </>
     );
 };

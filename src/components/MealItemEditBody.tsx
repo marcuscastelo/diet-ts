@@ -1,26 +1,32 @@
 import { Select, createOptions } from "@thisbeyond/solid-select";
-import { Component, Resource, Show, Suspense, createSignal } from "solid-js";
+import { Accessor, Component, Resource, Show, Suspense, createEffect, createSignal } from "solid-js";
 import { FoodData } from "~/model/foodModel";
 import MacroNutrients from "./MacroNutrients";
 import { emptyMacros, multiplyMacros } from "~/utils/macros";
-import { MealItemAddData } from "~/model/mealItemModel";
+import { MealItemEditData } from "~/model/mealItemModel";
 
-type MealItemAddBodyProperties = {
+type MealItemEditBodyProperties = {
     onCancel: () => void;
-    onSave: (mealItem: MealItemAddData) => void;
+    onSave: (mealItem: MealItemEditData) => void;
     foods: Resource<FoodData[]>;
+    mealItem: MealItemEditData;
 }
 
-const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
-    const { foods, onSave: onAdd, onCancel } = props;
+const MealItemEditBody: Component<MealItemEditBodyProperties> = (props) => {
+    const { foods, mealItem, onSave: onAdd, onCancel } = props;
 
-    const [selectedFood, setSelectedFood] = createSignal<FoodData | undefined>(undefined);
-    const [quantity, setQuantity] = createSignal(0);
+    const [selectedFood, setSelectedFood] = createSignal<FoodData>(mealItem.food);
+    const [quantity, setQuantity] = createSignal(mealItem.quantity);
+
+    createEffect(() => {
+        setSelectedFood(mealItem.food);
+        setQuantity(mealItem.quantity);
+    });
 
     const foodMacros = () => selectedFood()?.macros;
     const macros = () => multiplyMacros(foodMacros() || emptyMacros(), quantity());
 
-    const canAdd = () => selectedFood() !== undefined && quantity() > 0;
+    const canSave = () => selectedFood() !== undefined && quantity() > 0;
 
     const fallback = [{name: 'Carregando...'}]
 
@@ -36,13 +42,13 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
             <div class="row mb-2 g-0">
                 <div class="col">
                     <Suspense fallback={<div>fallback: Loading...</div>}>
-                        <Select placeholder='Alimento' class='custom' {...options(foods.latest)} onChange={handleFilter} />
+                        <Select placeholder={mealItem.food.name} class='custom' {...options(foods.latest)} onChange={handleFilter} />
                     </Suspense>
                 </div>
             </div>
             <div class="row mb-2 g-0">
                 <div class="col">
-                    <input type="text" class="form-control custom" placeholder="Quantidade (gramas)" onInput={(e) => setQuantity(parseInt(e.target.value || '0'))} maxLength={5} />
+                    <input type="text" class="form-control custom" placeholder="Quantidade (gramas)" onInput={(e) => setQuantity(parseInt(e.target.value || '0'))} maxLength={5} value={quantity()}/>
                 </div>
             </div>
             <div class="row mb-2 g-0 mt-5">
@@ -95,13 +101,14 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
                     </button>
                 </div>
                 <div class="col">
-                    <button disabled={!canAdd()} class={`btn ${canAdd() ? 'btn-primary' : 'btn-dark text-muted'} w-100 bg p-1`} onClick={() => {
+                    <button disabled={!canSave()} class={`btn ${canSave() ? 'btn-primary' : 'btn-dark text-muted'} w-100 bg p-1`} onClick={() => {
                         const selectedFoodVal = selectedFood();
                         if (selectedFoodVal === undefined) {
                             throw new Error('selectedFood is undefined');
                         }
 
-                        const newMealItem: MealItemAddData = {
+                        const newMealItem: MealItemEditData = {
+                            ...mealItem,
                             food: selectedFoodVal,
                             quantity: quantity(),
                         };
@@ -138,7 +145,7 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
 
                         // window.scrollBy(0, 67)
                     }}>
-                        Adicionar
+                        Salvar
                     </button>
                 </div>
             </div>
@@ -146,4 +153,4 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
     );
 }
 
-export default MealItemAddBody;
+export default MealItemEditBody;

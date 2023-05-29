@@ -18,6 +18,8 @@ import MealItemAddModal from '~/components/MealItemAddModal';
 import { FoodData } from '~/model/foodModel';
 import { dayId } from '~/utils/date';
 import { isServer } from 'solid-js/web';
+import MealItemEditBody from '~/components/MealItemEditBody';
+import MealItemEditModal from '~/components/MealItemEditModal';
 
 const todayId = dayId(new Date());
 
@@ -48,7 +50,10 @@ const Home: Component = () => {
 }
 
 const HomeInner: Component = () => {
-  const [showModal, setShowModal] = createSignal(false);
+  const [showAddModal, setShowAddModal] = createSignal(false);
+  const [showEditModal, setShowEditModal] = createSignal(false);
+  const [targetEditItem, setTargetEditItem] = createSignal<MealItemData | null>(null);
+
   const [requestedMealId, setRequestedMealId] = createSignal<string | null>(null);
   const { foods, meals } = useRouteData<typeof routeData>();
 
@@ -84,17 +89,17 @@ const HomeInner: Component = () => {
 
   // Add request
   const onAddItemRequest = async (mealId: string) => {
-    setShowModal(true);
+    setShowAddModal(true);
     setRequestedMealId(mealId);
   }
 
   // Add request cancel
-  const onItemCanceled = () => {
+  const onAddCanceled = () => {
     setRequestedMealId(null);
   }
 
   // Add request confirm
-  const onItemAdded = (item: MealItemAddData) => {
+  const onAddConfirmed = (item: MealItemAddData) => {
     if (!requestedMealId()) {
       throw new Error('Bug: requestedMealId is null');
     }
@@ -122,15 +127,27 @@ const HomeInner: Component = () => {
     }
 
     mealItem.food = item.food;
-    mealItem.quantity = item.quantity + 1; //TODO: proper edition
+    mealItem.quantity = item.quantity;
 
     await dayController.updateDay(today);
   });
 
   // Edit request
   const onEditItemRequest = async (item: MealItemData) => {
+    setTargetEditItem(item);
+    setShowEditModal(true);
+  };
+
+  // Edit request cancel
+  const onEditCanceled = () => {
+    setShowEditModal(false);
+  };
+
+  // Edit request confirm
+  const onEditConfirmed = (item: MealItemData) => {
+    alert('edit confirmed \n' + JSON.stringify(item, null, 2));
     editItem({ item });
-  }
+  };    
 
   // Delete action
   const [itemDeletion, deleteItem] = createServerAction$(async ({ item }: { item: MealItemData }) => {
@@ -199,12 +216,23 @@ const HomeInner: Component = () => {
 
           <Suspense fallback={<p>Loading foods...</p>}>
             <MealItemAddModal
-              show={showModal}
-              setShow={setShowModal}
+              show={showAddModal}
+              setShow={setShowAddModal}
               foods={foods as Resource<FoodProps[]>}
-              onAdd={onItemAdded}
-              onCancel={onItemCanceled}
+              onSave={onAddConfirmed}
+              onCancel={onAddCanceled}
             />
+
+            <Show when={targetEditItem() !== null}>
+              <MealItemEditModal
+                show={showEditModal}
+                setShow={setShowEditModal}
+                mealItem={targetEditItem()!}
+                foods={foods as Resource<FoodProps[]>}
+                onSave={onEditConfirmed}
+                onCancel={onEditCanceled}
+              />
+            </Show>
           </Suspense>
 
           <Suspense fallback={<p>Loading meals...</p>}>

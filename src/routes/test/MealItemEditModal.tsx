@@ -1,8 +1,8 @@
 import { Resource, Show, Suspense, createResource, createSignal } from "solid-js";
-import MealItemAddModal from "~/components/MealItemAddModal";
+import MealItemEditModal from "~/components/MealItemEditModal";
 import { mockFoods } from "./mock/foodMock";
 import { isServer } from "solid-js/web";
-import { MealItemAddData } from "~/model/mealItemModel";
+import { MealItemData, MealItemEditData } from "~/model/mealItemModel";
 import { FoodData } from "~/model/foodModel";
 import { createServerData$ } from "solid-start/server";
 
@@ -11,7 +11,7 @@ import { createServerData$ } from "solid-start/server";
 const Page = () => {
     const [show, setShow] = createSignal(true);
 
-    const onSave = (mealItem: MealItemAddData) => {
+    const onSave = (mealItem: MealItemEditData) => {
         alert('Add callback: \n' + JSON.stringify(mealItem, null, 2))
     };
 
@@ -25,12 +25,19 @@ const Page = () => {
         return mockFoods;
     });
 
+    const dummyItem: MealItemData = {
+        food: mockFoods[1],
+        quantity: 1,
+        id: '1',
+        mealId: '1',
+    };
     return (
         <>
             {isServer && <div>Server</div> || <div>Client</div>}
             <button onClick={() => setShow(!show())}>Toggle</button>
-            <MealItemAddModal
+            <MealItemEditModal
                 show={show} setShow={setShow}
+                mealItem={() => dummyItem}
                 foods={food as Resource<FoodData[]>}
                 onSave={onSave}
                 onCancel={onCancel}
