@@ -6,7 +6,7 @@ import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 import MealItem from './MealItem';
 
 export type MealProps = {
-    onAddItem: () => void,
+    onAddItem: () => Promise<void>,
     mealData: MealData,
     // name: string,
     // items: MealItemProps[],

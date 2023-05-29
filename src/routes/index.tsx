@@ -10,7 +10,7 @@ import { API } from './db';
 import * as dayController from '../controllers/dayController';
 import * as foodController from '../controllers/foodController';
 import { initDB } from '~/utils/surreal_db';
-import server$, { createServerData$ } from 'solid-start/server';
+import server$, { createServerAction$, createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 import { MealData } from '~/model/mealModel';
@@ -18,6 +18,7 @@ import { MealItemAddData, MealItemData } from '~/model/mealItemModel';
 import Meal from '~/components/Meal';
 import MealItemAddModal from '~/components/MealItemAddModal';
 import { FoodData } from '~/model/foodModel';
+import { ifError } from 'assert';
 
 export function routeData({ params }: RouteDataArgs) {
   const foods = createServerData$(async () => {
@@ -30,12 +31,12 @@ export function routeData({ params }: RouteDataArgs) {
       return item;
     };
 
-    return (await API.get<FoodData[]>('http://localhost:4000/food/search?q=frango')).data.map(mockMacros);
+    return (await API.get<FoodData[]>('http://localhost:4000/food/search?q=frango')).data?.map(mockMacros);
   });
 
   const meals = createServerData$(async () => {
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    return (await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521'))
+    return (await API.get<{ meals: MealData[] }>('http://localhost:4000/day/20230521?create=true'))
       .data
       .meals;
   });
@@ -59,23 +60,27 @@ const HomeInner: Component = () => {
   const macros = () => {
     return sumMacros(meals()?.map?.((meal) =>
       sumMacros(
-        meal.items.map((item) =>
+        meal.items?.map((item) =>
           multiplyMacros(item.food.macros ?? emptyMacros(), item.quantity)
-        )
+        ) ?? []
       )
     ) ?? [])
   }
 
-  const onAddItemRequest = () => {
+  const [itemAddition, addItem] = createServerAction$(async (item: MealItemAddData) => {
+    dayController.createDay
+  });
+
+  const onAddItemRequest = async () => {
     setShowModal(true);
   }
 
   const onItemAdded = (item: MealItemAddData) => {
+    addItem(item);
     alert('item added:\n' + JSON.stringify(item, null, 2));
   }
 
   const onItemCanceled = () => {
-    alert('item canceled');
   }
 
   return (
@@ -108,6 +113,10 @@ const HomeInner: Component = () => {
           </div>
           <div class="row g-0 my-3 text-center">
           </div>
+
+          <Show when={itemAddition.pending}>
+            <p>Adding item...</p>
+          </Show>
 
           <Suspense fallback={<p>Loading foods...</p>}>
             <MealItemAddModal

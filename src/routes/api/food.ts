@@ -1,10 +1,7 @@
 import { APIEvent, json } from "solid-start";
 
-export function GET(_: APIEvent) {
-    return json([
-        {
-            name: 'Pizza',
-            price: 10
-        },
-    ]);
+import * as foodController from "~/controllers/foodController";
+
+export async function GET(_: APIEvent) {
+    return json(await foodController.listFoods());
 }
