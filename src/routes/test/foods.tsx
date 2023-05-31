@@ -5,6 +5,7 @@ import { createServerData$ } from "solid-start/server";
 import { initDB } from "~/utils/surreal_db";
 import * as foodController from "~/controllers/foodController";
 import { FoodData } from "~/model/foodModel";
+import MacroNutrients from "~/components/MacroNutrients";
 
 export function routeData() {
     const foods = createServerData$(async () => (await foodController.listFoods()).map((item: Omit<FoodData, 'macros'>) => ({
@@ -22,6 +23,7 @@ export function routeData() {
 
 const Foods: Component = () => {
     const { foods } = useRouteData<typeof routeData>();
+
     return (
         <>
             <h1>Foods</h1>
@@ -30,10 +32,18 @@ const Foods: Component = () => {
                 <For each={foods()}>
                     {(food) => (
                         <div>
-                            <h2>{food.name}</h2>
-                            <p>{food.macros.carbs}</p>
-                            <p>{food.macros.protein}</p>
-                            <p>{food.macros.fat}</p>
+                            <h2 class="mt-2">{food.name} ({food.id})</h2>
+                            <MacroNutrients carbs={food.macros.carbs} protein={food.macros.protein} fat={food.macros.fat} />
+
+                            {
+                                (Object.keys(food)).map((key) => (
+                                    <div>
+                                        <strong>{key}</strong>: {food[key].toString()}
+                                    </div>
+                                ))
+                            }
+
+
                         </div>
                     )}
                 </For>

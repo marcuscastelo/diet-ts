@@ -1,9 +1,9 @@
-import { Select, createOptions } from "@thisbeyond/solid-select";
 import { Component, Resource, Show, Suspense, createSignal } from "solid-js";
 import { FoodData } from "~/model/foodModel";
 import MacroNutrients from "./MacroNutrients";
 import { emptyMacros, multiplyMacros } from "~/utils/macros";
 import { MealItemAddData } from "~/model/mealItemModel";
+import FoodSelector from "./FoodSelector";
 
 type MealItemAddBodyProperties = {
     onCancel: () => void;
@@ -22,22 +22,15 @@ const MealItemAddBody: Component<MealItemAddBodyProperties> = (props) => {
 
     const canAdd = () => selectedFood() !== undefined && quantity() > 0;
 
-    const fallback = [{name: 'Carregando...'}]
-
-    const options = (foods: FoodData[] | undefined) => createOptions(foods ?? fallback, { key: 'name' });
-
-    const handleFilter = (selectedFood: FoodData) => {
-        //TODO: optimize
-        setSelectedFood(selectedFood);
-    }
-
     return (
         <>
             <div class="row mb-2 g-0">
                 <div class="col">
-                    <Suspense fallback={<div>fallback: Loading...</div>}>
-                        <Select placeholder='Alimento' class='custom' {...options(foods.latest)} onChange={handleFilter} />
-                    </Suspense>
+                    <FoodSelector 
+                        selectedFood={selectedFood}
+                        setSelectedFood={setSelectedFood}
+                        foods={foods}
+                    />
                 </div>
             </div>
             <div class="row mb-2 g-0">
