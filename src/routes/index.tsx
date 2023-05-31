@@ -7,8 +7,7 @@ import { Select, createOptions } from '@thisbeyond/solid-select';
 import '@thisbeyond/solid-select/style.css'
 import { A, ErrorBoundary, RouteDataArgs, useRouteData } from 'solid-start';
 import * as dayController from '../controllers/dayController';
-import * as foodController from '../controllers/foodController';
-import server$, { createServerAction$, createServerData$ } from 'solid-start/server';
+import { createServerAction$, createServerData$ } from 'solid-start/server';
 import MacroNutrients from '~/components/MacroNutrients';
 import { emptyMacros, multiplyMacros, sumMacros } from '~/utils/macros';
 import { MealData } from '~/model/mealModel';
@@ -20,21 +19,12 @@ import { dayId } from '~/utils/date';
 import { isServer } from 'solid-js/web';
 import MealItemEditBody from '~/components/MealItemEditBody';
 import MealItemEditModal from '~/components/MealItemEditModal';
+import createServerDataFood$ from '~/data/foods';
 
 const todayId = dayId(new Date());
 
 export function routeData({ params }: RouteDataArgs) {
-  const foods = createServerData$(async () => {
-    const mockMacros = (food: Omit<FoodData, 'macros'>) => ({
-      ...food,
-      macros: {
-        protein: 123,
-        carbs: 123,
-        fat: 12,
-      },
-    } as FoodData);
-    return (await foodController.listFoods()).map(mockMacros);
-  });
+  const foods = createServerDataFood$();
 
   const meals = createServerData$(async () => (await dayController.getDay(todayId, true)).meals);
 

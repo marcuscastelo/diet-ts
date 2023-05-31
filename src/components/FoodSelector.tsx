@@ -2,29 +2,32 @@ import { Select, createOptions } from "@thisbeyond/solid-select";
 import { Accessor, Setter, type Component, Resource, Suspense } from 'solid-js';
 import { FoodData } from '~/model/foodModel';
 
-
 type FoodSelectorProperties = {
     selectedFood: Accessor<FoodData | undefined>;
     setSelectedFood: Setter<FoodData | undefined>;
-    onChange?: (selectedFood: FoodData) => void;
-    foods: Resource<FoodData[]>;
+    onChange?: (selectedFood: FoodData | undefined) => void;
+    foods: Resource<FoodData[] | undefined>;
 }
 
-function FoodSelector(props: FoodSelectorProperties) {
+const FoodSelector: Component<FoodSelectorProperties> = (props) => {
     const { selectedFood, setSelectedFood, foods, onChange } = props;
 
-    const options = (foods: FoodData[] | undefined) => createOptions(foods ?? fallback, { key: 'name' });
+    const fallback = [{ name: 'Loading...' }];
 
-    const fallback = [{ name: 'Carregando...' }]
+    const options = () => 
+        createOptions(foods() ?? fallback, { key: 'name' });
+
 
     const handleFilter = (selectedFood: FoodData) => {
         setSelectedFood(selectedFood);
         onChange?.(selectedFood);
     }
 
+    if (!foods()) return <> Loading... </>;
+
     return <>
         <Suspense fallback={<div>fallback: Loading...</div>}>
-            <Select placeholder='Alimento' class='custom' {...options(foods.latest)} onChange={handleFilter} />
+            <Select placeholder='Alimento' class='custom' {...options()} onChange={handleFilter} />
         </Suspense>
     </>;
 }
