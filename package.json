@@ -21,6 +21,7 @@
     "@thisbeyond/solid-select": "^0.14.0",
     "axios": "^1.4.0",
     "dotenv": "^16.0.3",
+    "fs": "^0.0.1-security",
     "sass": "^1.62.1",
     "solid-bootstrap": "^1.0.13",
     "solid-fa": "^0.2.0",

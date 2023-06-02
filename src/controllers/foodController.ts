@@ -1,7 +1,7 @@
 import { Result } from "surrealdb.js";
 import { FoodData } from "../model/foodModel";
 import { getFirst, unwrap } from "../utils/result";
-import { getFoodById, listFoods as tbcaListFoods } from "~/tbca/tbca";
+import { getFoodById, listFoods as tbcaListFoods } from "~/database/tbca/tbca";
 
 export const listFoods = async () => tbcaListFoods();
 

@@ -5,54 +5,12 @@ import { MealData } from "../model/mealModel";
 import { getFirst, unwrap } from "../utils/result";
 import { MealItemData } from "~/model/mealItemModel";
 
-const defaultMeals: MealData[] = [
-    {
-        id: "breakfast",
-        name: "Breakfast",
-        items: []
-    },
-    {
-        id: "lunch",
-        name: "Lunch",
-        items: []
-    },
-    {
-        id: "snack",
-        name: "Snack",
-        items: []
-    },
-    {
-        id: "dinner",
-        name: "Dinner",
-        items: []
-    },
-];
+import * as DayDB from '~/database/day/day'
 
-const debugLog = <T>(data: T) => {
-    console.log("DEBUG LOG");
-    console.log(JSON.stringify(data, null, 2));
-    return data;
-}
+export const listDays = async () => await DayDB.listDays();
 
-const as = <T>(data: any) => data as T;
+export const getDay = async (id: DayData['id'], create: boolean) => (await DayDB.getDay(id, create));
 
-export const listDays = async () => [
-    {
-        creationDate: '2023-06-01',
-        id: '2023-06-01',
-        meals: [
-            {
-                id: 'breakfast',
-                name: 'Breakfast',
-                items: [
-                ]
-            },
-        ]
-    } as DayData
-]
+export const createDay = async (id: DayData['id']) => await DayDB.createDay(id);
 
-export const getDay = async (id: DayData['id'], create: boolean) => (await listDays())[0]
-
-export const createDay = async (id: DayData['id']) => getDay(id, true)
-
-export const updateDay = async (data: DayData) => getDay(data.id, true)
+export const updateDay = async (data: DayData) => await DayDB.updateDay(data);

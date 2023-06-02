@@ -174,15 +174,15 @@ const HomeInner: Component = () => {
             <div class="col mx-auto">
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Carboidrato</span>
-                <ProgressBar variant='success' label={`${macros().carbs}g`} animated={true} min={0} max={200} now={macros().carbs} />
+                <ProgressBar variant='success' label={`${Math.round(macros().carbs*100)/100}g`} animated={true} min={0} max={200} now={Math.round(macros().carbs*100)/100} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Proteína</span>
-                <ProgressBar variant='danger' label={`${macros().protein}g`} animated={true} min={0} max={200} now={macros().protein} />
+                <ProgressBar variant='danger' label={`${Math.round(macros().protein*100)/100}g`} animated={true} min={0} max={200} now={Math.round(macros().protein*100)/100} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="text-start fs-5">Gordura</span>
-                <ProgressBar variant='warning' label={`${macros().fat}g`} animated={true} min={0} max={200} now={macros().fat} />
+                <ProgressBar variant='warning' label={`${Math.round(macros().fat*100)/100}g`} animated={true} min={0} max={200} now={Math.round(macros().fat*100)/100} />
               </div>
               <div class="row g-0 my-3 text-center">
                 <span class="fs-2"><MacroNutrients {...macros()} /></span>
@@ -231,7 +231,7 @@ const HomeInner: Component = () => {
                 onEditItem={(item) => onEditItemRequest(item)}
                 onDeleteItem={(item) => onDeleteItemRequest(item)}
               />
-              {/* <Meal
+              <Meal
                 mealData={(meals() as MealData[])[1]}
                 onAddItem={() => onAddItemRequest((meals() as MealData[])[1].id)}
                 onEditItem={(item) => onEditItemRequest(item)}
@@ -248,7 +248,7 @@ const HomeInner: Component = () => {
                 onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)}
                 onEditItem={(item) => onEditItemRequest(item)}
                 onDeleteItem={(item) => onDeleteItemRequest(item)}
-              /> */}
+              />
             </Show>
           </Suspense>
         </div>
