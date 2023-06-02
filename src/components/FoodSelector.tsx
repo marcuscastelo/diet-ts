@@ -14,9 +14,21 @@ const FoodSelector: Component<FoodSelectorProperties> = (props) => {
 
     const fallback = [{ name: 'Loading...' }];
 
-    const options = () => 
-        createOptions(foods() ?? fallback, { key: 'name' });
+    const options = () =>
+        createOptions(
+            foods() ?? fallback,
+            {key: 'name'});
 
+    const format = (data: any, type: 'option' | 'value') => {
+        
+        if (type == 'option') {
+            const food: FoodData = data.value;
+            return `(C: ${food['Carboidrato total']} P: ${food['Proteína']} F: ${food['Lipídios']}) ${food.name} `;
+        } else {
+            const food: FoodData = data;
+            return `${food.name}`;
+        }
+    }
 
     const handleFilter = (selectedFood: FoodData) => {
         setSelectedFood(selectedFood);
@@ -27,7 +39,13 @@ const FoodSelector: Component<FoodSelectorProperties> = (props) => {
 
     return <>
         <Suspense fallback={<div>fallback: Loading...</div>}>
-            <Select placeholder='Alimento' class='custom' {...options()} onChange={handleFilter} />
+            <Select
+                placeholder='Alimento'
+                class='custom'
+                onChange={handleFilter}
+                {...options()}
+                format={format}
+            />
         </Suspense>
     </>;
 }

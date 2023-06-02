@@ -10,7 +10,9 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-*,:before,:after {
+*,
+:before,
+:after {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   border-width: 0;
@@ -18,12 +20,16 @@ body {
   border-color: #e5e7eb
 }
 
-.children\:bg-white > * {
+.children\:bg-white>* {
   --tw-bg-opacity: 1;
-  background-color: rgba(255,255,255,var(--tw-bg-opacity));
+  background-color: rgba(255, 255, 255, var(--tw-bg-opacity));
 }
 
-input.custom  {
+.custom {
+  background-color: #222;
+}
+
+input.custom {
   background-color: #222;
   border-color: #555;
   outline-color: #555;
@@ -46,37 +52,52 @@ input.custom:focus {
   color: white;
 }
 
+.solid-select-list {
+  overflow-x: hidden;
+  overflow-y: scroll;
+}
+
 .custom.solid-select-container {
   color: #fff;
   overflow-wrap: break-word;
+  scrollbar-width: none !important;
 }
+
 .custom .solid-select-control {
   outline-color: #555;
   border-color: #555;
   background-color: #222;
 }
+
 .custom .solid-select-input:focus {
   outline-color: #fff;
   border-color: #fff;
+  word-wrap: normal !important;
 }
+
 .custom .solid-select-placeholder {
   color: #555;
 }
+
 .custom .solid-select-input {
   color: #fff;
+}
+
+.custom .solid-select-option {
+  margin: 1px;
+  width: 45vw;
+  word-wrap: normal !important;
+  white-space: normal !important;
 }
 
 .custom .solid-select-option[data-focused=true] {
   background-color: #666;
   color: #fff;
-  max-width: 500px !important;
-  
 }
 
 .custom .solid-select-option[data-focused=false] {
   background-color: #555;
   color: #aaa;
-  max-width: 500px !important;
 }
 
 .custom .solid-select-option:hover {
