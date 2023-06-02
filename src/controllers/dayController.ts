@@ -1,5 +1,4 @@
 import { Result } from "surrealdb.js";
-import {initDB} from "../utils/surreal_db";
 import { DayData } from "../model/dayModel";
 import { dayId } from "../utils/date";
 import { MealData } from "../model/mealModel";
@@ -37,35 +36,23 @@ const debugLog = <T>(data: T) => {
 
 const as = <T>(data: any) => data as T;
 
-export const listDays = async () =>
-    await (await initDB()).query<Result<DayData[]>[]>(
-        `select * from day`
-    ).then(getFirst).then(unwrap).then(as<DayData[]>)
+export const listDays = async () => [
+    {
+        creationDate: '2023-06-01',
+        id: '2023-06-01',
+        meals: [
+            {
+                id: 'breakfast',
+                name: 'Breakfast',
+                items: [
+                ]
+            },
+        ]
+    } as DayData
+]
 
-export const getDay = async (id: DayData['id'], create: boolean) =>
-    await (await initDB()).query<Result<DayData[]>[]>(
-        // `select *, ->has->meal.* as meals, ->has->meal->has->mealitem as meals.items from day:⟨${id}⟩`
-        `select * from day:⟨${id}⟩`
-    ).then(getFirst).then(unwrap).then(debugLog).then(as<DayData[]>).then(getFirst).then(d => {
-        if (!d && create) {
-            return createDay(id);
-        } else {
-            return d;
-        }
-    });
+export const getDay = async (id: DayData['id'], create: boolean) => (await listDays())[0]
 
-export const createDay = async (id: DayData['id']) =>
-    await (await initDB()).create<DayData>(
-        'day', {
-            id,
-            creationDate: dayId(new Date()),
-            meals: [...defaultMeals]
-        }
-    )
+export const createDay = async (id: DayData['id']) => getDay(id, true)
 
-export const updateDay = async (data: DayData) => 
-    await (await initDB()).update<DayData>(
-        'day', {
-            ...data
-        }
-    )
+export const updateDay = async (data: DayData) => getDay(data.id, true)

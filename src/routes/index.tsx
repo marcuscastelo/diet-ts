@@ -34,8 +34,6 @@ export function routeData({ params }: RouteDataArgs) {
 const Home: Component = () => {
   return (
     <HomeInner />
-    // <ModalShowProvider>
-    // </ModalShowProvider>
   )
 }
 
@@ -233,7 +231,7 @@ const HomeInner: Component = () => {
                 onEditItem={(item) => onEditItemRequest(item)}
                 onDeleteItem={(item) => onDeleteItemRequest(item)}
               />
-              <Meal
+              {/* <Meal
                 mealData={(meals() as MealData[])[1]}
                 onAddItem={() => onAddItemRequest((meals() as MealData[])[1].id)}
                 onEditItem={(item) => onEditItemRequest(item)}
@@ -250,7 +248,7 @@ const HomeInner: Component = () => {
                 onAddItem={() => onAddItemRequest((meals() as MealData[])[2].id)}
                 onEditItem={(item) => onEditItemRequest(item)}
                 onDeleteItem={(item) => onDeleteItemRequest(item)}
-              />
+              /> */}
             </Show>
           </Suspense>
         </div>

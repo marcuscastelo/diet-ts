@@ -4,14 +4,14 @@ import * as foodController from '../controllers/foodController';
 
 export default function createServerDataFood$() {
     return createServerData$(async () => {
-        const mockMacros = (food: Omit<FoodData, 'macros'>) => ({
+        const tempFillMacros = (food: Omit<FoodData, 'macros'>) => ({
             ...food,
             macros: {
-                protein: 123,
-                carbs: 123,
-                fat: 12,
+                protein: parseFloat(food['Proteína']?.[0].replace(',', '.')) || 0,
+                carbs: parseFloat(food['Carboidrato total']?.[0].replace(',', '.')) || 0,
+                fat: parseFloat(food['Lipídios']?.[0].replace(',', '.')) || 0,
             },
         } as FoodData);
-        return (await foodController.listFoods()).map(mockMacros);
+        return (await foodController.listFoods()).map(tempFillMacros);
     });
 }
